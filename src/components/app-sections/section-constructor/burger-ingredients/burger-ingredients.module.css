@@ -1,0 +1,114 @@
+.main {
+  width: 600px;
+  max-width: 600px;
+  height: 912px;
+  flex: 0 0 600px;
+}
+
+.heading {
+  margin-top: 40px;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 592px;
+  max-width: 592px;
+  margin-top: 20px;
+}
+
+.tabs :global(.tab) {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  height: 756px;
+  max-height: 756px;
+  overflow-y: auto;
+  width: 592px;
+  max-width: 592px;
+  padding-right: 8px;
+  scroll-behavior: smooth;
+  scrollbar-width: 8px;
+  scrollbar-color: rgba(76, 76, 255, 1) rgba(47, 47, 55, 1);
+}
+
+.listGroup {
+  display: flex;
+  margin-top: 40px;
+  flex-direction: column;
+}
+
+.groupTitle {
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.groupItems {
+  display: grid;
+  grid-template-columns: repeat(2, 272px);
+  column-gap: 24px;
+  row-gap: 32px;
+  justify-items: center;
+  align-items: center;
+  width: 100%;
+}
+
+.listItem {
+  width: 100%;
+  margin-left: 16px;
+}
+
+.itemWrapper {
+  display: flex;
+  width: 272px;
+  height: 208px;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+.itemImage {
+  display: flex;
+  width: 240;
+  height: 120;
+  border-width: 1;
+  border-color: rgb(75, 142, 3);
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.itemPrice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.itemTitle {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.counterWrapper {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+}
+
+.list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: rgba(47, 47, 55, 1);
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: rgba(76, 76, 255, 1);
+}
