@@ -1,0 +1,6 @@
+.container {
+  display: flex;
+  gap: 40px;
+  width: 1240px;
+  flex: 0 0 auto;
+}
