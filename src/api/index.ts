@@ -1,0 +1,1 @@
+export { getIngredients } from './ingredients'

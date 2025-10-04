@@ -1,12 +1,9 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import BurgerConstructor from "./burger-constructor/burger-constructor";
 import BurgerIngredients from "./burger-ingredients/burger-ingredients";
-import styles from "./section-constructor.module.css";
-import {
-  GROUP_ORDER,
-  TYPE_LABELS,
-  BURGER_INGREDIENTS,
-} from "./section-constructor.constants";
+import stylesConstructor from "./section-constructor.module.css";
+import { getIngredients } from "api";
+import { GROUP_ORDER, TYPE_LABELS } from "./section-constructor.constants";
 import type {
   BurgerIngredientGroup,
   BurgerIngredientType,
@@ -23,59 +20,73 @@ const groupIngredientsByType = (
     items: ingredients.filter((ingredient) => ingredient.type === type),
   }));
 
-const ingredientsByIdMap = () =>
+const ingredientsByIdMap = (BURGER_INGREDIENTS: BurgerIngredientType[]) =>
   BURGER_INGREDIENTS.reduce((accumulator, ingredient) => {
     accumulator[ingredient._id] = ingredient;
     return accumulator;
   }, {} as Record<string, BurgerIngredientType>);
 
 const SectionConstructor: React.FC = () => {
+  const [ingredients, setIngredients] = useState<BurgerIngredientType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedIngredients, setSelectedIngredients] = useState<
     Partial<BurgerIngredientDictionary>
   >({});
 
-  const ingredientsById = useMemo(ingredientsByIdMap, []);
+  useEffect(() => {
+    setLoading(true);
+
+    getIngredients()
+      .then((data) => {
+        console.log("ingredients:", data);
+        setIngredients(data);
+      })
+      .catch((err) => setError(err));
+    setLoading(false);
+  }, []);
+
+  const ingredientsById = ingredientsByIdMap(ingredients);
+
   const groupedData = useMemo<BurgerIngredientGroup[]>(
-    () => groupIngredientsByType(BURGER_INGREDIENTS),
-    []
+    () => groupIngredientsByType(ingredients),
+    [ingredients]
   );
 
   const { bun, items: constructorItems } = useMemo<{
     bun: BurgerIngredientType | null;
     items: ConstructorSelectedIngredient[];
-  }>(
-    () => {
-      const items: ConstructorSelectedIngredient[] = [];
-      let bunIngredient: BurgerIngredientType | null = null;
+  }>(() => {
+    const items: ConstructorSelectedIngredient[] = [];
+    let bunIngredient: BurgerIngredientType | null = null;
 
-      Object.values(selectedIngredients).forEach((entry) => {
-        if (!entry) {
-          return;
-        }
+    Object.values(selectedIngredients).forEach((entry) => {
+      if (!entry) {
+        return;
+      }
 
-        const ingredient = ingredientsById[entry._id];
+      const ingredient = ingredientsById[entry._id];
 
-        if (!ingredient || !entry.selected?.length) {
-          return;
-        }
+      if (!ingredient || !entry.selected?.length) {
+        return;
+      }
 
-        if (ingredient.type === "bun") {
-          bunIngredient = ingredient;
-          return;
-        }
+      if (ingredient.type === "bun") {
+        bunIngredient = ingredient;
+        return;
+      }
 
-        entry.selected.forEach((uid) => {
-          items.push({
-            uid,
-            ingredient,
-          });
+      entry.selected.forEach((uid) => {
+        items.push({
+          uid,
+          ingredient,
         });
       });
+    });
 
-      return { bun: bunIngredient, items };
-    },
-    [ingredientsById, selectedIngredients]
-  );
+    return { bun: bunIngredient, items };
+  }, [ingredientsById, selectedIngredients]);
 
   const totalPrice = useMemo(() => {
     const fillingsTotal = constructorItems.reduce(
@@ -153,14 +164,29 @@ const SectionConstructor: React.FC = () => {
     [ingredientsById]
   );
 
+  if (loading || error)
+    return (
+      <div className={stylesConstructor.container}>
+        <p
+          className={`text text_type_main-default ${stylesConstructor.messege}`}
+        >
+          {error ? error : "Загрузка ингредиентов..."}
+        </p>
+      </div>
+    );
+
   return (
-    <div className={styles.container}>
+    <div className={stylesConstructor.container}>
       <BurgerIngredients
         groupedData={groupedData}
         getCounterById={getCounterById}
         onIngredientSelect={handleIngredientSelect}
       />
-      <BurgerConstructor bun={bun} items={constructorItems} totalPrice={totalPrice} />
+      <BurgerConstructor
+        bun={bun}
+        items={constructorItems}
+        totalPrice={totalPrice}
+      />
     </div>
   );
 };
