@@ -1,7 +1,5 @@
 import React, { useCallback, useState } from "react";
-import AppHeader, {
-  AppHeaderTabName,
-} from "../app-header/app-header";
+import AppHeader, { AppHeaderTabName } from "../app-header/app-header";
 import SectionConstructor from "../app-sections/section-constructor/section-constructor";
 import SectionOrders from "../app-sections/section-orders/section-orders";
 import SectionProfile from "../app-sections/section-profile/section-profile";

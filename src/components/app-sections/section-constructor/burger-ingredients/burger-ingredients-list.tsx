@@ -33,11 +33,10 @@ const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = ({
       const containerRect = container.getBoundingClientRect();
       const targetRect = target.getBoundingClientRect();
       const offsetTop =
-        targetRect.top - containerRect.top + container.scrollTop - 40;
-      container.scrollTo({
-        top: Math.max(offsetTop, 0),
-        behavior: "smooth",
-      });
+        targetRect.top - containerRect.top + container.scrollTop;
+      const top = Math.max(offsetTop, 0);
+
+      container.scrollTop = top;
     }
   }, [activeTab, groupedData]);
 
@@ -51,7 +50,9 @@ const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = ({
           }}
           className={ingredientsListStyles.listGroup}
         >
-          <h2 className={`${ingredientsListStyles.groupTitle} text text_type_main-medium`}>
+          <h2
+            className={`${ingredientsListStyles.groupTitle} text text_type_main-medium`}
+          >
             {name}
           </h2>
           <ul className={ingredientsListStyles.groupItems}>

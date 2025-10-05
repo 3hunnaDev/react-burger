@@ -66,4 +66,17 @@ export interface BurgerConstructorProps {
     bun: BurgerIngredientType | null;
     items: ConstructorSelectedIngredient[];
     totalPrice: number;
+    onOrder: () => void;
+    removeItem: (ingredientId: BurgerIngredientType["_id"], uid: string) => void
+}
+
+
+export interface OrderDetailsProps {
+    orderNumber: number;
+    onClose: () => void;
+}
+
+export interface IngredientDetailsProps {
+    ingredient: BurgerIngredientType;
+    onClose: () => void;
 }

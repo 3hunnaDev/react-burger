@@ -10,6 +10,8 @@ import type {
   BurgerIngredientDictionary,
   ConstructorSelectedIngredient,
 } from "./section-constructor.type";
+import IngredientDetails from "./burger-ingredients/burger-ingredients-details";
+import OrderDetails from "./burger-constructor/burger-constructor-order";
 
 const groupIngredientsByType = (
   ingredients: BurgerIngredientType[]
@@ -35,16 +37,31 @@ const SectionConstructor: React.FC = () => {
     Partial<BurgerIngredientDictionary>
   >({});
 
+  const [activeIngredient, setActiveIngredient] =
+    useState<BurgerIngredientType | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [orderNumber, setOrderNumber] = useState<number | null>(null);
+
   useEffect(() => {
     setLoading(true);
-
     getIngredients()
       .then((data) => {
-        console.log("ingredients:", data);
-        setIngredients(data);
+        console.log("YAH!!! ingredients:", data);
+        if (data.length > 0) {
+          setIngredients(data);
+        } else {
+          setError("Нет данных");
+        }
       })
-      .catch((err) => setError(err));
-    setLoading(false);
+      .catch((err) => {
+        console.error("Ошибка загрузки:", err);
+        setError("Ошибка загрузки данных");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => {};
   }, []);
 
   const ingredientsById = ingredientsByIdMap(ingredients);
@@ -63,6 +80,7 @@ const SectionConstructor: React.FC = () => {
 
     Object.values(selectedIngredients).forEach((entry) => {
       if (!entry) {
+        setOrderNumber(null);
         return;
       }
 
@@ -110,6 +128,8 @@ const SectionConstructor: React.FC = () => {
       if (!selectedIngredient) {
         return;
       }
+
+      setActiveIngredient(selectedIngredient);
 
       const uid = `${ingredientId}_${Date.now()}`;
 
@@ -164,6 +184,49 @@ const SectionConstructor: React.FC = () => {
     [ingredientsById]
   );
 
+  const handleRemoveFromConstructor = useCallback(
+    (ingredientId: BurgerIngredientType["_id"], uid: string) => {
+      setOrderNumber(null);
+
+      setSelectedIngredients((prev) => {
+        const entry = prev[ingredientId];
+        if (!entry) return prev;
+
+        const nextSelected = entry.selected.filter((x) => x !== uid);
+
+        if (nextSelected.length === 0) {
+          const { [ingredientId]: _removed, ...rest } = prev;
+          return rest;
+        }
+
+        return {
+          ...prev,
+          [ingredientId]: {
+            ...entry,
+            selected: nextSelected,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleIngredientModalClose = () => {
+    setActiveIngredient(null);
+  };
+
+  const handleOrder = () => {
+    if (constructorItems.length > 0) {
+      setOrderNumber(() => Math.floor(100000 + Math.random() * 900000));
+      setIsOrderModalOpen(true);
+    }
+  };
+
+  const handleOrderModalClose = () => {
+    setIsOrderModalOpen(false);
+    setOrderNumber(null);
+  };
+
   if (loading || error)
     return (
       <div className={stylesConstructor.container}>
@@ -186,7 +249,21 @@ const SectionConstructor: React.FC = () => {
         bun={bun}
         items={constructorItems}
         totalPrice={totalPrice}
+        onOrder={handleOrder}
+        removeItem={handleRemoveFromConstructor}
       />
+      {activeIngredient && (
+        <IngredientDetails
+          onClose={handleIngredientModalClose}
+          ingredient={activeIngredient}
+        />
+      )}
+      {isOrderModalOpen && orderNumber !== null && (
+        <OrderDetails
+          onClose={handleOrderModalClose}
+          orderNumber={orderNumber}
+        />
+      )}
     </div>
   );
 };

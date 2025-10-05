@@ -12,6 +12,8 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
   bun,
   items,
   totalPrice,
+  onOrder,
+  removeItem,
 }) => {
   const hasFillings = items.length > 0;
 
@@ -42,6 +44,7 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
                     text={ingredient.name}
                     price={ingredient.price}
                     thumbnail={ingredient.image_mobile}
+                    handleClose={() => removeItem(ingredient._id, uid)}
                     extraClass={
                       burgerConstructorStyles.constructorElementFilling
                     }
@@ -73,7 +76,7 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
           <span className="text text_type_digits-medium">{totalPrice}</span>
           <CurrencyIcon type="primary" />
         </div>
-        <Button htmlType="button" type="primary" size="large">
+        <Button htmlType="button" type="primary" size="large" onClick={onOrder}>
           Оформить заказ
         </Button>
       </div>

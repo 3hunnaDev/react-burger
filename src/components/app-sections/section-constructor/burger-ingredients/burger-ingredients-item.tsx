@@ -24,10 +24,16 @@ const BurgerIngredientsItem: React.FC<BurgerIngredientItemProps> = ({
           </div>
         )}
         <div className={styles.itemImage}>
-          <img alt={ingredient.name} src={ingredient.image} className="ml-4 mr-4" />
+          <img
+            alt={ingredient.name}
+            src={ingredient.image}
+            className="ml-4 mr-4"
+          />
         </div>
         <div className={styles.itemPrice}>
-          <span className="text text_type_digits-default">{ingredient.price}</span>
+          <span className="text text_type_digits-default">
+            {ingredient.price}
+          </span>
           <CurrencyIcon type="primary" />
         </div>
         <span className={`${styles.itemTitle} text text_type_main-small`}>
