@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "build-ts",
+    "module": "CommonJS"
+  },
+  "include": ["src/store/**/*", "src/components/app-sections/section-constructor/section-constructor.type.ts"]
+}
