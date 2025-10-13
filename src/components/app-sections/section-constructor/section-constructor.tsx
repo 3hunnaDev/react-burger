@@ -112,9 +112,15 @@ const SectionConstructor: React.FC = () => {
       }
 
       setActiveIngredient(selectedIngredient);
-      dispatch(addIngredient(selectedIngredient));
     },
-    [dispatch, ingredientsById]
+    [ingredientsById]
+  );
+
+  const handleIngredientDrop = useCallback(
+    (ingredient: BurgerIngredientType) => {
+      dispatch(addIngredient(ingredient));
+    },
+    [dispatch]
   );
 
   const handleRemoveFromConstructor = useCallback(
@@ -165,6 +171,7 @@ const SectionConstructor: React.FC = () => {
         totalPrice={totalPrice}
         onOrder={handleOrder}
         removeItem={handleRemoveFromConstructor}
+        onDropIngredient={handleIngredientDrop}
       />
       {activeIngredient && (
         <IngredientDetails

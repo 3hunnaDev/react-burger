@@ -9,16 +9,24 @@
 }
 
 .listGroup {
-  margin-top: 100px;
   flex: 0 0 auto;
   height: 656px;
   width: 568px;
+  border-radius: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-self: center;
   gap: 16px;
   position: relative;
+}
+
+.dropTargetReady {
+  background-color: rgba(76, 76, 255, 0.04);
+}
+
+.dropTargetActive {
+  background-color: rgba(76, 76, 255, 0.1);
 }
 
 .lockedItem {

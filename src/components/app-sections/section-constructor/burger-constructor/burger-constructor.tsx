@@ -1,12 +1,16 @@
 import React from "react";
-import burgerConstructorStyles from "./burger-constructor.module.css";
 import {
   ConstructorElement,
   DragIcon,
   Button,
   CurrencyIcon,
 } from "@ya.praktikum/react-developer-burger-ui-components";
-import type { BurgerConstructorProps } from "../section-constructor.type";
+import { useDrop } from "react-dnd";
+import burgerConstructorStyles from "./burger-constructor.module.css";
+import type {
+  BurgerConstructorProps,
+  DraggedIngredient,
+} from "../section-constructor.type";
 
 const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
   bun,
@@ -14,12 +18,43 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
   totalPrice,
   onOrder,
   removeItem,
+  onDropIngredient,
 }) => {
   const hasFillings = items.length > 0;
 
+  const [{ isOver, canDrop }, dropRef] = useDrop<
+    DraggedIngredient,
+    void,
+    {
+      isOver: boolean;
+      canDrop: boolean;
+    }
+  >(
+    () => ({
+      accept: "ingredient",
+      drop: ({ ingredient }) => {
+        onDropIngredient(ingredient);
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+        canDrop: monitor.canDrop(),
+      }),
+    }),
+    [onDropIngredient]
+  );
+
+  const dropAreaClassName = !canDrop
+    ? ""
+    : isOver
+    ? ` ${burgerConstructorStyles.dropTargetActive}`
+    : ` ${burgerConstructorStyles.dropTargetReady}`;
+
   return (
     <div className={burgerConstructorStyles.main}>
-      <section className={burgerConstructorStyles.listGroup}>
+      <section
+        ref={dropRef}
+        className={`${burgerConstructorStyles.listGroup}${dropAreaClassName}`}
+      >
         {bun && (
           <div className={burgerConstructorStyles.lockedItem}>
             <ConstructorElement

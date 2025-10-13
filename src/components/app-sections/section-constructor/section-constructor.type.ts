@@ -47,6 +47,10 @@ export interface BurgerIngredientItemProps {
     onSelect: (_id: BurgerIngredientType["_id"]) => void;
 }
 
+export interface DraggedIngredient {
+    ingredient: BurgerIngredientType;
+}
+
 export interface BurgerIngredientDictionaryItem {
     _id: BurgerIngredientType["_id"];
     selected: string[];
@@ -67,7 +71,8 @@ export interface BurgerConstructorProps {
     items: ConstructorSelectedIngredient[];
     totalPrice: number;
     onOrder: () => void;
-    removeItem: (ingredientId: BurgerIngredientType["_id"], uid: string) => void
+    removeItem: (ingredientId: BurgerIngredientType["_id"], uid: string) => void;
+    onDropIngredient: (ingredient: BurgerIngredientType) => void;
 }
 
 

@@ -1,23 +1,50 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Counter,
   CurrencyIcon,
 } from "@ya.praktikum/react-developer-burger-ui-components";
+import { useDrag } from "react-dnd";
 import styles from "./burger-ingredients.module.css";
-import type { BurgerIngredientItemProps } from "../section-constructor.type";
+import type {
+  BurgerIngredientItemProps,
+  DraggedIngredient,
+} from "../section-constructor.type";
 
 const BurgerIngredientsItem: React.FC<BurgerIngredientItemProps> = ({
   ingredient,
   counter = 0,
   onSelect,
 }) => {
+  const dragItem = useMemo<DraggedIngredient>(
+    () => ({ ingredient }),
+    [ingredient]
+  );
+
+  const [{ isDragging }, dragRef] = useDrag<DraggedIngredient, void, { isDragging: boolean }>(
+    () => ({
+      type: "ingredient",
+      item: dragItem,
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+    }),
+    [dragItem]
+  );
+
   const handleSelect = useCallback(() => {
     onSelect(ingredient._id);
   }, [ingredient._id, onSelect]);
 
+  const opacity = isDragging ? 0.4 : 1;
+
   return (
     <li className={styles.listItem}>
-      <article className={styles.itemWrapper} onClick={handleSelect}>
+      <article
+        ref={dragRef}
+        className={styles.itemWrapper}
+        onClick={handleSelect}
+        style={{ opacity }}
+      >
         {counter > 0 && (
           <div className={styles.counterWrapper}>
             <Counter count={counter} size="default" />
