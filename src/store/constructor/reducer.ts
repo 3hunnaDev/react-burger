@@ -11,6 +11,7 @@ interface ConstructorState {
     loading: boolean;
     error: string | null;
     selectedIngredients: BurgerIngredientDictionary;
+    selectedOrder: string[];
 }
 
 const initialState: ConstructorState = {
@@ -18,6 +19,7 @@ const initialState: ConstructorState = {
     loading: false,
     error: null,
     selectedIngredients: {},
+    selectedOrder: [],
 };
 
 const ensureSelectedDictionary = (state: ConstructorState): BurgerIngredientDictionary => {
@@ -61,10 +63,11 @@ const appendIngredientSelection = (
             _id: payload._id,
             selected: [uid],
         };
-        return;
+    } else {
+        currentEntry.selected.push(uid);
     }
 
-    currentEntry.selected.push(uid);
+    state.selectedOrder.push(uid);
 };
 
 const constructorSlice = createSlice({
@@ -96,9 +99,32 @@ const constructorSlice = createSlice({
                     delete dictionary[ingredientId];
                 }
             }
+
+            state.selectedOrder = state.selectedOrder.filter((selectedUid) => selectedUid !== uid);
+        },
+        reorderIngredients: (
+            state,
+            action: PayloadAction<{ fromIndex: number; toIndex: number }>
+        ) => {
+            const { fromIndex, toIndex } = action.payload;
+            const orderLength = state.selectedOrder.length;
+
+            if (
+                fromIndex === toIndex ||
+                fromIndex < 0 ||
+                toIndex < 0 ||
+                fromIndex >= orderLength ||
+                toIndex >= orderLength
+            ) {
+                return;
+            }
+
+            const [movedItem] = state.selectedOrder.splice(fromIndex, 1);
+            state.selectedOrder.splice(toIndex, 0, movedItem);
         },
         resetConstructor: (state) => {
             state.selectedIngredients = {};
+            state.selectedOrder = [];
         },
     },
     extraReducers: (builder) => {
@@ -118,7 +144,7 @@ const constructorSlice = createSlice({
     },
 });
 
-export const { addIngredient, removeIngredient, resetConstructor } =
+export const { addIngredient, removeIngredient, reorderIngredients, resetConstructor } =
     constructorSlice.actions;
 
 export default constructorSlice.reducer;

@@ -11,7 +11,11 @@ import type {
 } from "./section-constructor.type";
 import IngredientDetails from "./burger-ingredients/burger-ingredients-details";
 import OrderDetails from "./burger-constructor/burger-constructor-order";
-import { addIngredient, removeIngredient } from "store/constructor/reducer";
+import {
+  addIngredient,
+  removeIngredient,
+  reorderIngredients,
+} from "store/constructor/reducer";
 import { fetchIngredients } from "store/constructor/thunk";
 import type { AppDispatch, RootState } from "store";
 
@@ -37,6 +41,7 @@ const SectionConstructor: React.FC = () => {
     loading,
     error,
     selectedIngredients = {},
+    selectedOrder = [],
   } = useSelector((state: RootState) => state.burgerConstructor);
 
   const [activeIngredient, setActiveIngredient] =
@@ -62,8 +67,8 @@ const SectionConstructor: React.FC = () => {
     bun: BurgerIngredientType | null;
     items: ConstructorSelectedIngredient[];
   }>(() => {
-    const items: ConstructorSelectedIngredient[] = [];
     let bunIngredient: BurgerIngredientType | null = null;
+    const fillingByUid = new Map<string, BurgerIngredientType>();
 
     Object.values(selectedIngredients).forEach((entry) => {
       const ingredient = ingredientsById[entry._id];
@@ -78,15 +83,30 @@ const SectionConstructor: React.FC = () => {
       }
 
       entry.selected.forEach((uid) => {
-        items.push({
-          uid,
-          ingredient,
-        });
+        fillingByUid.set(uid, ingredient);
       });
     });
 
+    const items = selectedOrder.reduce<ConstructorSelectedIngredient[]>(
+      (accumulator, uid) => {
+        const ingredient = fillingByUid.get(uid);
+
+        if (!ingredient) {
+          return accumulator;
+        }
+
+        accumulator.push({
+          uid,
+          ingredient,
+        });
+
+        return accumulator;
+      },
+      []
+    );
+
     return { bun: bunIngredient, items };
-  }, [ingredientsById, selectedIngredients]);
+  }, [ingredientsById, selectedIngredients, selectedOrder]);
 
   const totalPrice = useMemo(() => {
     const fillingsTotal = constructorItems.reduce(
@@ -127,6 +147,13 @@ const SectionConstructor: React.FC = () => {
     (ingredientId: BurgerIngredientType["_id"], uid: string) => {
       setOrderNumber(null);
       dispatch(removeIngredient({ ingredientId, uid }));
+    },
+    [dispatch]
+  );
+
+  const handleReorderIngredients = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      dispatch(reorderIngredients({ fromIndex, toIndex }));
     },
     [dispatch]
   );
@@ -172,6 +199,7 @@ const SectionConstructor: React.FC = () => {
         onOrder={handleOrder}
         removeItem={handleRemoveFromConstructor}
         onDropIngredient={handleIngredientDrop}
+        moveItem={handleReorderIngredients}
       />
       {activeIngredient && (
         <IngredientDetails

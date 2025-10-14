@@ -1,12 +1,12 @@
 import React from "react";
 import {
   ConstructorElement,
-  DragIcon,
   Button,
   CurrencyIcon,
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import { useDrop } from "react-dnd";
 import burgerConstructorStyles from "./burger-constructor.module.css";
+import ConstructorFillingItem from "./constructor-filling-item";
 import type {
   BurgerConstructorProps,
   DraggedIngredient,
@@ -19,6 +19,7 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
   onOrder,
   removeItem,
   onDropIngredient,
+  moveItem,
 }) => {
   const hasFillings = items.length > 0;
 
@@ -70,21 +71,14 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
         {hasFillings || bun ? (
           <div className={burgerConstructorStyles.fillings}>
             <ul className={burgerConstructorStyles.itemsList}>
-              {items.map(({ uid, ingredient }) => (
-                <li key={uid} className={burgerConstructorStyles.item}>
-                  <div className={burgerConstructorStyles.dragIconWrapper}>
-                    <DragIcon type="primary" />
-                  </div>
-                  <ConstructorElement
-                    text={ingredient.name}
-                    price={ingredient.price}
-                    thumbnail={ingredient.image_mobile}
-                    handleClose={() => removeItem(ingredient._id, uid)}
-                    extraClass={
-                      burgerConstructorStyles.constructorElementFilling
-                    }
-                  />
-                </li>
+              {items.map((item, index) => (
+                <ConstructorFillingItem
+                  key={item.uid}
+                  index={index}
+                  item={item}
+                  moveItem={moveItem}
+                  removeItem={removeItem}
+                />
               ))}
             </ul>
           </div>
