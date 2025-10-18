@@ -1,28 +1,25 @@
 import React from "react";
 import { Tab } from "@ya.praktikum/react-developer-burger-ui-components";
 import styles from "./burger-ingredients.module.css";
-import { TAB_LABELS } from "../section-constructor.constants";
 import type {
   BurgerIngredientsTabsProps,
   TabLabel,
 } from "../section-constructor.type";
 
-const isTabLabel = (value: string): value is TabLabel =>
-  (TAB_LABELS as readonly string[]).includes(value);
-
 const BurgerIngredientsTabs: React.FC<BurgerIngredientsTabsProps> = ({
   activeTab,
   onTabChange,
+  tabLabels,
 }) => {
   const handleTabClick = (value: string) => {
-    if (isTabLabel(value)) {
-      onTabChange(value);
+    if (tabLabels.includes(value as TabLabel)) {
+      onTabChange(value as TabLabel);
     }
   };
 
   return (
     <div className={styles.tabs}>
-      {TAB_LABELS.map((label) => (
+      {tabLabels.map((label) => (
         <Tab
           key={label}
           value={label}

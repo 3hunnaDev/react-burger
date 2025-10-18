@@ -1,5 +1,12 @@
 export type IngredientType = "bun" | "main" | "sauce";
 
+export type TabLabel = "Булки" | "Соусы" | "Начинки";
+
+export interface IngredientGroupConfig {
+    type: IngredientType;
+    label: TabLabel;
+}
+
 export interface BurgerIngredientType {
     _id: string;
     name: string;
@@ -15,12 +22,13 @@ export interface BurgerIngredientType {
     __v: number;
 }
 
-export type TabLabel = "Булки" | "Соусы" | "Начинки";
-
 export interface BurgerIngredientsProps {
     groupedData: BurgerIngredientGroup[];
     getCounterById: (_id: BurgerIngredientType["_id"]) => number;
     onIngredientSelect: (_id: BurgerIngredientType["_id"]) => void;
+    tabLabels: readonly TabLabel[];
+    labelToType: Record<TabLabel, IngredientType>;
+    typeToLabel: Record<IngredientType, TabLabel>;
 }
 
 export interface BurgerIngredientsListProps {
@@ -28,11 +36,17 @@ export interface BurgerIngredientsListProps {
     activeTab: TabLabel;
     getCounterById: (_id: BurgerIngredientType["_id"]) => number;
     onIngredientSelect: (_id: BurgerIngredientType["_id"]) => void;
+    onGroupInView: (label: TabLabel) => void;
+    shouldScrollToActive: boolean;
+    onScrollAligned: () => void;
+    labelToType: Record<TabLabel, IngredientType>;
+    typeToLabel: Record<IngredientType, TabLabel>;
 }
 
 export interface BurgerIngredientsTabsProps {
     activeTab: TabLabel;
     onTabChange: (tab: TabLabel) => void;
+    tabLabels: readonly TabLabel[];
 }
 
 export interface BurgerIngredientGroup {
@@ -79,10 +93,8 @@ export interface BurgerConstructorProps {
 
 export interface OrderDetailsProps {
     orderNumber: number;
-    onClose: () => void;
 }
 
 export interface IngredientDetailsProps {
     ingredient: BurgerIngredientType;
-    onClose: () => void;
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import Modal from "../modal/modal";
+import Modal from "../../modal/modal";
 import styles from "./error-messege.module.css";
 
 interface ErrorMessegeProps {
@@ -11,14 +11,18 @@ interface ErrorMessegeProps {
 
 const modalStyles = {
   main: {
+    display: "flex",
     width: 620,
-    minHeight: 420,
+    height: 420,
     borderRadius: 40,
     backgroundColor: "rgba(28, 28, 33, 1)",
   },
   header: {
     display: "flex",
-    margin: "24px 24px 0 24px",
+    flex: 0.1,
+    marginLeft: 40,
+    marginTop: 40,
+    marginRight: 40,
     justifyContent: "space-between",
     alignItems: "center",
   },
@@ -32,25 +36,27 @@ const modalStyles = {
   content: {
     display: "flex",
     flex: 1,
-    padding: "0 24px 24px 24px",
+    padding: "24px",
   },
 };
 
 const ErrorMessege: React.FC<ErrorMessegeProps> = ({
-  title = "Уведомление",
+  title = "Сообщение об шибке",
   message,
   description,
   onClose,
 }) => (
   <Modal
-    title={<h2 className="text text_type_main-large">{title}</h2>}
+    title={<p className="text text_type_main-large">{title}</p>}
     onClose={onClose}
     styles={modalStyles}
   >
     <div className={styles.container}>
-      <p className="text text_type_main-medium">{message}</p>
+      <p className="text text_type_main-default">{message}</p>
       {description && (
-        <p className={`text text_type_main-default ${styles.description}`}>
+        <p
+          className={`text text_type_main-default text_color_inactive ${styles.description}`}
+        >
           {description}
         </p>
       )}

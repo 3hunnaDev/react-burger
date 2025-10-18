@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import styles from "./burger-ingredients.module.css";
-import { TAB_LABELS } from "../section-constructor.constants";
 import type {
   BurgerIngredientsProps,
   TabLabel,
@@ -10,12 +9,30 @@ import BurgerIngredientsList from "./burger-ingredients-list";
 
 const BurgerIngredients: React.FC<BurgerIngredientsProps> = ({
   groupedData,
+  tabLabels,
+  labelToType,
+  typeToLabel,
   getCounterById,
   onIngredientSelect,
 }) => {
   const [currentActiveTab, setCurrentActiveTab] = useState<TabLabel>(
-    TAB_LABELS[0]
+    tabLabels[0]!
   );
+  const [shouldScrollToActive, setShouldScrollToActive] = useState(false);
+
+  const handleTabChange = useCallback((label: TabLabel) => {
+    setCurrentActiveTab(label);
+    setShouldScrollToActive(true);
+  }, []);
+
+  const handleGroupInView = useCallback((label: TabLabel) => {
+    setCurrentActiveTab((prev) => (prev === label ? prev : label));
+    setShouldScrollToActive(false);
+  }, []);
+
+  const handleScrollAligned = useCallback(() => {
+    setShouldScrollToActive(false);
+  }, []);
 
   return (
     <div className={styles.main}>
@@ -24,13 +41,19 @@ const BurgerIngredients: React.FC<BurgerIngredientsProps> = ({
       </p>
       <BurgerIngredientsTabs
         activeTab={currentActiveTab}
-        onTabChange={setCurrentActiveTab}
+        onTabChange={handleTabChange}
+        tabLabels={tabLabels}
       />
       <BurgerIngredientsList
         groupedData={groupedData}
         activeTab={currentActiveTab}
         getCounterById={getCounterById}
         onIngredientSelect={onIngredientSelect}
+        onGroupInView={handleGroupInView}
+        shouldScrollToActive={shouldScrollToActive}
+        onScrollAligned={handleScrollAligned}
+        labelToType={labelToType}
+        typeToLabel={typeToLabel}
       />
     </div>
   );

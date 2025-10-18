@@ -3,31 +3,46 @@ import { useDispatch, useSelector } from "react-redux";
 import BurgerConstructor from "./burger-constructor/burger-constructor";
 import BurgerIngredients from "./burger-ingredients/burger-ingredients";
 import stylesConstructor from "./section-constructor.module.css";
-import { GROUP_ORDER, TYPE_LABELS } from "./section-constructor.constants";
 import type {
   BurgerIngredientGroup,
   BurgerIngredientType,
   ConstructorSelectedIngredient,
+  IngredientGroupConfig,
 } from "./section-constructor.type";
-import IngredientDetails from "./burger-ingredients/burger-ingredients-details";
-import OrderDetails from "./burger-constructor/burger-constructor-order";
+import IngredientDetails, {
+  ingredientModalStyles,
+} from "./burger-ingredients/burger-ingredients-details";
+import OrderDetails, {
+  orderModalStyles,
+} from "./burger-constructor/burger-constructor-order";
 import {
   addIngredient,
   removeIngredient,
   reorderIngredients,
-  resetConstructor,
+  closeOrderModal,
+  clearOrderError,
 } from "store/constructor/reducer";
-import { fetchIngredients } from "store/constructor/thunk";
+import {
+  fetchIngredients,
+  submitConstructorOrder,
+} from "store/constructor/thunk";
 import type { AppDispatch, RootState } from "store";
-import { createIngredientsOrder } from "api/ingredients-order";
-import ErrorMessege from "components/shared/messege/error-messege";
+import {
+  selectIngredientGroupsConfig,
+  selectIngredientTabLabels,
+  selectLabelToTypeMap,
+  selectTypeToLabelMap,
+} from "store/constructor/selectors";
+import ErrorMessege from "components/shared/messeges/error/error-messege";
+import Modal from "components/shared/modal/modal";
 
 const groupIngredientsByType = (
-  ingredients: BurgerIngredientType[] = []
+  ingredients: BurgerIngredientType[] = [],
+  groups: readonly IngredientGroupConfig[] = []
 ): BurgerIngredientGroup[] =>
-  GROUP_ORDER.map((type) => ({
+  groups.map(({ type, label }) => ({
     type,
-    name: TYPE_LABELS[type],
+    name: label,
     items: ingredients.filter((ingredient) => ingredient.type === type),
   }));
 
@@ -45,16 +60,18 @@ const SectionConstructor: React.FC = () => {
     error,
     selectedIngredients = {},
     selectedOrder = [],
+    orderNumber,
+    orderStatus,
+    orderError,
+    isOrderModalOpen,
   } = useSelector((state: RootState) => state.burgerConstructor);
+  const tabLabels = useSelector(selectIngredientTabLabels);
+  const labelToType = useSelector(selectLabelToTypeMap);
+  const typeToLabel = useSelector(selectTypeToLabelMap);
+  const ingredientGroupsConfig = useSelector(selectIngredientGroupsConfig);
 
   const [activeIngredient, setActiveIngredient] =
     useState<BurgerIngredientType | null>(null);
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [orderNumber, setOrderNumber] = useState<number | null>(null);
-  const [isOrderRequesting, setIsOrderRequesting] = useState(false);
-  const [orderRequestError, setOrderRequestError] = useState<string | null>(
-    null
-  );
 
   useEffect(() => {
     dispatch(fetchIngredients());
@@ -66,8 +83,8 @@ const SectionConstructor: React.FC = () => {
   );
 
   const groupedData = useMemo<BurgerIngredientGroup[]>(
-    () => groupIngredientsByType(ingredients),
-    [ingredients]
+    () => groupIngredientsByType(ingredients, ingredientGroupsConfig),
+    [ingredientGroupsConfig, ingredients]
   );
 
   const { bun, items: constructorItems } = useMemo<{
@@ -152,7 +169,6 @@ const SectionConstructor: React.FC = () => {
 
   const handleRemoveFromConstructor = useCallback(
     (ingredientId: BurgerIngredientType["_id"], uid: string) => {
-      setOrderNumber(null);
       dispatch(removeIngredient({ ingredientId, uid }));
     },
     [dispatch]
@@ -169,51 +185,20 @@ const SectionConstructor: React.FC = () => {
     setActiveIngredient(null);
   };
 
-  const handleOrder = useCallback(async () => {
-    if (isOrderRequesting) {
+  const handleOrder = useCallback(() => {
+    if (orderStatus === "loading") {
       return;
     }
-
-    if (!bun) {
-      setOrderRequestError("Выберите булку для заказа.");
-      return;
-    }
-
-    if (constructorItems.length === 0) {
-      setOrderRequestError("Добавьте начинку перед оформлением заказа.");
-      return;
-    }
-
-    setOrderRequestError(null);
-    setIsOrderRequesting(true);
-    setOrderNumber(null);
-
-    const bunId = bun._id;
-    const fillingIds = constructorItems.map(
-      ({ ingredient }) => ingredient._id
-    );
-    const orderIngredientIds = [bunId, ...fillingIds, bunId];
-
-    try {
-      const response = await createIngredientsOrder(orderIngredientIds);
-      setOrderNumber(response.order.number);
-      setIsOrderModalOpen(true);
-      dispatch(resetConstructor());
-    } catch (error) {
-      setOrderRequestError("Не удалось оформить заказ. Попробуйте позже.");
-    } finally {
-      setIsOrderRequesting(false);
-    }
-  }, [bun, constructorItems, dispatch, isOrderRequesting]);
+    dispatch(submitConstructorOrder());
+  }, [dispatch, orderStatus]);
 
   const handleOrderModalClose = () => {
-    setIsOrderModalOpen(false);
-    setOrderNumber(null);
+    dispatch(closeOrderModal());
   };
 
   const handleOrderErrorClose = useCallback(() => {
-    setOrderRequestError(null);
-  }, []);
+    dispatch(clearOrderError());
+  }, [dispatch]);
 
   if (loading || error)
     return (
@@ -230,6 +215,9 @@ const SectionConstructor: React.FC = () => {
     <div className={stylesConstructor.container}>
       <BurgerIngredients
         groupedData={groupedData}
+        tabLabels={tabLabels}
+        labelToType={labelToType}
+        typeToLabel={typeToLabel}
         getCounterById={getCounterById}
         onIngredientSelect={handleIngredientSelect}
       />
@@ -243,21 +231,25 @@ const SectionConstructor: React.FC = () => {
         moveItem={handleReorderIngredients}
       />
       {activeIngredient && (
-        <IngredientDetails
+        <Modal
+          title={
+            <h2 className="text text_type_main-large">Детали ингредиентов</h2>
+          }
           onClose={handleIngredientModalClose}
-          ingredient={activeIngredient}
-        />
+          styles={ingredientModalStyles}
+        >
+          <IngredientDetails ingredient={activeIngredient} />
+        </Modal>
       )}
       {isOrderModalOpen && orderNumber !== null && (
-        <OrderDetails
-          onClose={handleOrderModalClose}
-          orderNumber={orderNumber}
-        />
+        <Modal onClose={handleOrderModalClose} styles={orderModalStyles}>
+          <OrderDetails orderNumber={orderNumber} />
+        </Modal>
       )}
-      {orderRequestError && (
+      {orderError && (
         <ErrorMessege
           title="Ошибка заказа"
-          message={orderRequestError}
+          message={orderError}
           onClose={handleOrderErrorClose}
         />
       )}

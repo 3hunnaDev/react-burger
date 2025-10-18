@@ -1,74 +1,11 @@
 import { createSlice, nanoid, PayloadAction } from "@reduxjs/toolkit";
-import type {
-    BurgerIngredientDictionary,
-    BurgerIngredientDictionaryItem,
-    BurgerIngredientType,
-} from "components/app-sections/section-constructor/section-constructor.type";
-import { fetchIngredients } from "./thunk";
+import type { BurgerIngredientType } from "components/app-sections/section-constructor/section-constructor.type";
+import type { ConstructorState } from "./types";
+import { fetchIngredients, submitConstructorOrder } from "./thunk";
+import { initialConstructorState } from "./state";
+import { appendIngredientSelection, ensureBunSelection, ensureSelectedDictionary } from "./utils";
 
-interface ConstructorState {
-    ingredients: BurgerIngredientType[];
-    loading: boolean;
-    error: string | null;
-    selectedIngredients: BurgerIngredientDictionary;
-    selectedOrder: string[];
-}
-
-const initialState: ConstructorState = {
-    ingredients: [],
-    loading: false,
-    error: null,
-    selectedIngredients: {},
-    selectedOrder: [],
-};
-
-const ensureSelectedDictionary = (state: ConstructorState): BurgerIngredientDictionary => {
-    if (!state.selectedIngredients) {
-        state.selectedIngredients = {};
-    }
-    return state.selectedIngredients;
-};
-
-const ensureBunSelection = (
-    state: ConstructorState,
-    payload: BurgerIngredientType,
-    uid: string
-) => {
-    const dictionary = ensureSelectedDictionary(state);
-
-    Object.keys(dictionary).forEach((key) => {
-        const ingredient = state.ingredients.find(({ _id }) => _id === key);
-        if (ingredient?.type === "bun" && key !== payload._id) {
-            delete dictionary[key];
-        }
-    });
-
-    dictionary[payload._id] = {
-        _id: payload._id,
-        selected: [uid],
-    };
-};
-
-const appendIngredientSelection = (
-    state: ConstructorState,
-    payload: BurgerIngredientType,
-    uid: string
-) => {
-    const dictionary = ensureSelectedDictionary(state);
-    const currentEntry: BurgerIngredientDictionaryItem | undefined =
-        dictionary[payload._id];
-
-    if (!currentEntry) {
-        dictionary[payload._id] = {
-            _id: payload._id,
-            selected: [uid],
-        };
-    } else {
-        currentEntry.selected.push(uid);
-    }
-
-    state.selectedOrder.push(uid);
-};
+const initialState: ConstructorState = initialConstructorState;
 
 const constructorSlice = createSlice({
     name: "constructor",
@@ -126,6 +63,15 @@ const constructorSlice = createSlice({
             state.selectedIngredients = {};
             state.selectedOrder = [];
         },
+        closeOrderModal: (state) => {
+            state.isOrderModalOpen = false;
+            state.orderNumber = null;
+            state.orderStatus = "empty";
+        },
+        clearOrderError: (state) => {
+            state.orderError = null;
+            state.orderStatus = "empty";
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -140,11 +86,34 @@ const constructorSlice = createSlice({
             .addCase(fetchIngredients.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload ?? "Ошибка загрузки данных";
+            })
+            .addCase(submitConstructorOrder.pending, (state) => {
+                state.orderStatus = "loading";
+                state.orderError = null;
+            })
+            .addCase(submitConstructorOrder.fulfilled, (state, action) => {
+                state.orderStatus = "succeeded";
+                state.orderNumber = action.payload.orderNumber;
+                state.isOrderModalOpen = true;
+                state.orderError = null;
+                state.selectedIngredients = {};
+                state.selectedOrder = [];
+            })
+            .addCase(submitConstructorOrder.rejected, (state, action) => {
+                state.orderStatus = "failed";
+                state.orderError =
+                    action.payload ?? action.error.message ?? "Не удалось оформить заказ";
             });
     },
 });
 
-export const { addIngredient, removeIngredient, reorderIngredients, resetConstructor } =
-    constructorSlice.actions;
+export const {
+    addIngredient,
+    removeIngredient,
+    reorderIngredients,
+    resetConstructor,
+    closeOrderModal,
+    clearOrderError,
+} = constructorSlice.actions;
 
 export default constructorSlice.reducer;

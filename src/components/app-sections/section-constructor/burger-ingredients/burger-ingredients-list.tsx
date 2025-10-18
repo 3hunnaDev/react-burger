@@ -1,74 +1,172 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useCallback } from "react";
+import { InView } from "react-intersection-observer";
 import ingredientsListStyles from "./burger-ingredients.module.css";
-import { LABEL_TO_TYPE } from "../section-constructor.constants";
 import BurgerIngredientsItem from "./burger-ingredients-item";
 import type {
   BurgerIngredientsListProps,
   IngredientType,
 } from "../section-constructor.type";
 
-const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = ({
-  groupedData,
-  activeTab,
-  getCounterById,
-  onIngredientSelect,
-}) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const groupRefs = useRef<Record<IngredientType, HTMLElement | null>>({
-    bun: null,
-    sauce: null,
-    main: null,
-  });
+const SCROLL_TIMEOUT_MS = 350;
 
-  useEffect(() => {
-    if (!groupedData.length) {
-      return;
-    }
+const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = React.memo(
+  ({
+    groupedData,
+    activeTab,
+    getCounterById,
+    onIngredientSelect,
+    onGroupInView,
+    shouldScrollToActive,
+    onScrollAligned,
+    labelToType,
+    typeToLabel,
+  }) => {
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
-    const activeType = LABEL_TO_TYPE[activeTab];
-    const target = groupRefs.current[activeType];
+    const isProgrammaticScrollRef = useRef(false);
+    const timerRef = useRef<number | null>(null);
+    const visibleSectionsRef = useRef<Set<IngredientType>>(new Set());
+    const lastNotifiedSectionRef = useRef<IngredientType | null>(null);
 
-    const container = containerRef.current;
-    if (container && target) {
-      const containerRect = container.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const offsetTop =
-        targetRect.top - containerRect.top + container.scrollTop;
-      const top = Math.max(offsetTop, 0);
+    const notifyFirstVisibleSection = useCallback(() => {
+      const nextType = groupedData.find(({ type }) =>
+        visibleSectionsRef.current.has(type)
+      )?.type;
 
-      container.scrollTop = top;
-    }
-  }, [activeTab, groupedData]);
+      if (!nextType) {
+        lastNotifiedSectionRef.current = null;
+        return;
+      }
 
-  return (
-    <div ref={containerRef} className={ingredientsListStyles.list}>
-      {groupedData.map(({ name, type, items }) => (
-        <section
-          key={type}
-          ref={(node) => {
-            groupRefs.current[type] = node;
-          }}
-          className={ingredientsListStyles.listGroup}
-        >
-          <h2
-            className={`${ingredientsListStyles.groupTitle} text text_type_main-medium`}
+      if (lastNotifiedSectionRef.current === nextType) {
+        return;
+      }
+
+      const label = typeToLabel[nextType];
+      if (!label) {
+        return;
+      }
+
+      lastNotifiedSectionRef.current = nextType;
+      onGroupInView(label);
+    }, [groupedData, onGroupInView, typeToLabel]);
+
+    useEffect(() => {
+      lastNotifiedSectionRef.current = labelToType[activeTab] ?? null;
+    }, [activeTab, labelToType]);
+
+    useEffect(() => {
+      return () => {
+        if (timerRef.current !== null) {
+          window.clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+      };
+    }, []);
+
+    useEffect(() => {
+      if (!shouldScrollToActive) return;
+
+      const container = containerRef.current;
+      if (!container) {
+        onScrollAligned();
+        return;
+      }
+
+      const activeType = labelToType[activeTab];
+      const target = container.querySelector<HTMLElement>(
+        `[data-type="${activeType}"]`
+      );
+
+      if (!target) {
+        onScrollAligned();
+        return;
+      }
+
+      isProgrammaticScrollRef.current = true;
+
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        if (timerRef.current !== null) {
+          window.clearTimeout(timerRef.current);
+        }
+        timerRef.current = window.setTimeout(() => {
+          isProgrammaticScrollRef.current = false;
+          onScrollAligned();
+          timerRef.current = null;
+        }, SCROLL_TIMEOUT_MS);
+      });
+    }, [activeTab, labelToType, onScrollAligned, shouldScrollToActive]);
+
+    const handleInViewChange = useCallback(
+      (inView: boolean, entry: IntersectionObserverEntry) => {
+        const el = entry.target as HTMLElement;
+        const sectionType = el.getAttribute("data-type") as IngredientType;
+
+        if (!sectionType) {
+          return;
+        }
+
+        if (inView) {
+          visibleSectionsRef.current.add(sectionType);
+        } else {
+          visibleSectionsRef.current.delete(sectionType);
+        }
+
+        if (isProgrammaticScrollRef.current) {
+          return;
+        }
+
+        notifyFirstVisibleSection();
+      },
+      [notifyFirstVisibleSection]
+    );
+
+    const headingIds = useMemo(() => {
+      return new Map<IngredientType, string>(
+        groupedData.map(({ type, name }) => [type, `group-heading-${type}`])
+      );
+    }, [groupedData]);
+
+    return (
+      <div ref={containerRef} className={ingredientsListStyles.list}>
+        {groupedData.map(({ name, type, items }) => (
+          <InView
+            as="section"
+            key={type}
+            root={containerRef.current ?? undefined}
+            threshold={0}
+            onChange={handleInViewChange}
+            data-type={type}
+            className={ingredientsListStyles.listGroup}
+            aria-labelledby={headingIds.get(type)}
+            role="region"
           >
-            {name}
-          </h2>
-          <ul className={ingredientsListStyles.groupItems}>
-            {items.map((ingredient) => (
-              <BurgerIngredientsItem
-                key={`itemComponent_${ingredient._id}${type}`}
-                ingredient={ingredient}
-                counter={getCounterById(ingredient._id)}
-                onSelect={onIngredientSelect}
-              />
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
-  );
-};
+            <h2
+              id={headingIds.get(type)}
+              className={`${ingredientsListStyles.groupTitle} text text_type_main-medium`}
+            >
+              {name}
+            </h2>
 
-export default React.memo(BurgerIngredientsList);
+            <ul className={ingredientsListStyles.groupItems}>
+              {items.map((ingredient) => (
+                <BurgerIngredientsItem
+                  key={`${ingredient._id}-${type}`}
+                  ingredient={ingredient}
+                  counter={getCounterById(ingredient._id)}
+                  onSelect={onIngredientSelect}
+                />
+              ))}
+            </ul>
+          </InView>
+        ))}
+      </div>
+    );
+  }
+);
+
+BurgerIngredientsList.displayName = "BurgerIngredientsList";
+
+export default BurgerIngredientsList;

@@ -103,6 +103,7 @@
 
 .list::-webkit-scrollbar {
   width: 8px;
+  border-radius: 0;
 }
 
 .list::-webkit-scrollbar-track {
