@@ -1,6 +1,18 @@
-export async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
+const API_BASE_URL = "https://norma.nomoreparties.space/api";
+
+function resolveUrl(endpoint: string): string {
+    if (/^https?:\/\//i.test(endpoint)) {
+        return endpoint;
+    }
+
+    const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    return `${API_BASE_URL}${normalizedEndpoint}`;
+}
+
+export async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const url = resolveUrl(endpoint);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
     try {
         const response = await fetch(url, {

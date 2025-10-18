@@ -15,9 +15,12 @@ import {
   addIngredient,
   removeIngredient,
   reorderIngredients,
+  resetConstructor,
 } from "store/constructor/reducer";
 import { fetchIngredients } from "store/constructor/thunk";
 import type { AppDispatch, RootState } from "store";
+import { createIngredientsOrder } from "api/ingredients-order";
+import ErrorMessege from "components/shared/messege/error-messege";
 
 const groupIngredientsByType = (
   ingredients: BurgerIngredientType[] = []
@@ -48,6 +51,10 @@ const SectionConstructor: React.FC = () => {
     useState<BurgerIngredientType | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
+  const [isOrderRequesting, setIsOrderRequesting] = useState(false);
+  const [orderRequestError, setOrderRequestError] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     dispatch(fetchIngredients());
@@ -162,17 +169,51 @@ const SectionConstructor: React.FC = () => {
     setActiveIngredient(null);
   };
 
-  const handleOrder = () => {
-    if (constructorItems.length > 0) {
-      setOrderNumber(() => Math.floor(100000 + Math.random() * 900000));
-      setIsOrderModalOpen(true);
+  const handleOrder = useCallback(async () => {
+    if (isOrderRequesting) {
+      return;
     }
-  };
+
+    if (!bun) {
+      setOrderRequestError("Выберите булку для заказа.");
+      return;
+    }
+
+    if (constructorItems.length === 0) {
+      setOrderRequestError("Добавьте начинку перед оформлением заказа.");
+      return;
+    }
+
+    setOrderRequestError(null);
+    setIsOrderRequesting(true);
+    setOrderNumber(null);
+
+    const bunId = bun._id;
+    const fillingIds = constructorItems.map(
+      ({ ingredient }) => ingredient._id
+    );
+    const orderIngredientIds = [bunId, ...fillingIds, bunId];
+
+    try {
+      const response = await createIngredientsOrder(orderIngredientIds);
+      setOrderNumber(response.order.number);
+      setIsOrderModalOpen(true);
+      dispatch(resetConstructor());
+    } catch (error) {
+      setOrderRequestError("Не удалось оформить заказ. Попробуйте позже.");
+    } finally {
+      setIsOrderRequesting(false);
+    }
+  }, [bun, constructorItems, dispatch, isOrderRequesting]);
 
   const handleOrderModalClose = () => {
     setIsOrderModalOpen(false);
     setOrderNumber(null);
   };
+
+  const handleOrderErrorClose = useCallback(() => {
+    setOrderRequestError(null);
+  }, []);
 
   if (loading || error)
     return (
@@ -211,6 +252,13 @@ const SectionConstructor: React.FC = () => {
         <OrderDetails
           onClose={handleOrderModalClose}
           orderNumber={orderNumber}
+        />
+      )}
+      {orderRequestError && (
+        <ErrorMessege
+          title="Ошибка заказа"
+          message={orderRequestError}
+          onClose={handleOrderErrorClose}
         />
       )}
     </div>

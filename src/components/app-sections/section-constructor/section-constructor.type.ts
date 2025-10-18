@@ -70,7 +70,7 @@ export interface BurgerConstructorProps {
     bun: BurgerIngredientType | null;
     items: ConstructorSelectedIngredient[];
     totalPrice: number;
-    onOrder: () => void;
+    onOrder: () => void | Promise<void>;
     removeItem: (ingredientId: BurgerIngredientType["_id"], uid: string) => void;
     onDropIngredient: (ingredient: BurgerIngredientType) => void;
     moveItem: (fromIndex: number, toIndex: number) => void;

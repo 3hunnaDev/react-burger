@@ -6,7 +6,7 @@ import {
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import { useDrop } from "react-dnd";
 import burgerConstructorStyles from "./burger-constructor.module.css";
-import ConstructorFillingItem from "./constructor-filling-item";
+import ConstructorFillingItem from "./burger-constructor-filling-item";
 import type {
   BurgerConstructorProps,
   DraggedIngredient,
