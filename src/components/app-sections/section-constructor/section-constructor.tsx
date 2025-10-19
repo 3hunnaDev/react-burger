@@ -1,92 +1,103 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import BurgerConstructor from "./burger-constructor/burger-constructor";
 import BurgerIngredients from "./burger-ingredients/burger-ingredients";
 import stylesConstructor from "./section-constructor.module.css";
-import { getIngredients } from "api";
-import { GROUP_ORDER, TYPE_LABELS } from "./section-constructor.constants";
 import type {
   BurgerIngredientGroup,
   BurgerIngredientType,
-  BurgerIngredientDictionary,
   ConstructorSelectedIngredient,
+  IngredientGroupConfig,
 } from "./section-constructor.type";
-import IngredientDetails from "./burger-ingredients/burger-ingredients-details";
-import OrderDetails from "./burger-constructor/burger-constructor-order";
+import IngredientDetails, {
+  ingredientModalStyles,
+} from "./burger-ingredients/burger-ingredients-details";
+import OrderDetails, {
+  orderModalStyles,
+} from "./burger-constructor/burger-constructor-order";
+import {
+  addIngredient,
+  removeIngredient,
+  reorderIngredients,
+  closeOrderModal,
+  clearOrderError,
+} from "store/constructor/reducer";
+import {
+  fetchIngredients,
+  submitConstructorOrder,
+} from "store/constructor/thunk";
+import type { AppDispatch, RootState } from "store";
+import {
+  selectIngredientGroupsConfig,
+  selectIngredientTabLabels,
+  selectLabelToTypeMap,
+  selectTypeToLabelMap,
+} from "store/constructor/selectors";
+import ErrorMessege from "components/shared/messeges/error/error-messege";
+import Modal from "components/shared/modal/modal";
 
 const groupIngredientsByType = (
-  ingredients: BurgerIngredientType[]
+  ingredients: BurgerIngredientType[] = [],
+  groups: readonly IngredientGroupConfig[] = []
 ): BurgerIngredientGroup[] =>
-  GROUP_ORDER.map((type) => ({
+  groups.map(({ type, label }) => ({
     type,
-    name: TYPE_LABELS[type],
+    name: label,
     items: ingredients.filter((ingredient) => ingredient.type === type),
   }));
 
-const ingredientsByIdMap = (BURGER_INGREDIENTS: BurgerIngredientType[]) =>
-  BURGER_INGREDIENTS.reduce((accumulator, ingredient) => {
+const ingredientsByIdMap = (ingredientsList: BurgerIngredientType[] = []) =>
+  ingredientsList.reduce((accumulator, ingredient) => {
     accumulator[ingredient._id] = ingredient;
     return accumulator;
   }, {} as Record<string, BurgerIngredientType>);
 
 const SectionConstructor: React.FC = () => {
-  const [ingredients, setIngredients] = useState<BurgerIngredientType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [selectedIngredients, setSelectedIngredients] = useState<
-    Partial<BurgerIngredientDictionary>
-  >({});
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    ingredients,
+    loading,
+    error,
+    selectedIngredients = {},
+    selectedOrder = [],
+    orderNumber,
+    orderStatus,
+    orderError,
+    isOrderModalOpen,
+  } = useSelector((state: RootState) => state.burgerConstructor);
+  const tabLabels = useSelector(selectIngredientTabLabels);
+  const labelToType = useSelector(selectLabelToTypeMap);
+  const typeToLabel = useSelector(selectTypeToLabelMap);
+  const ingredientGroupsConfig = useSelector(selectIngredientGroupsConfig);
 
   const [activeIngredient, setActiveIngredient] =
     useState<BurgerIngredientType | null>(null);
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [orderNumber, setOrderNumber] = useState<number | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    getIngredients()
-      .then((data) => {
-        console.log("YAH!!! ingredients:", data);
-        if (data.length > 0) {
-          setIngredients(data);
-        } else {
-          setError("Нет данных");
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка загрузки:", err);
-        setError("Ошибка загрузки данных");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    dispatch(fetchIngredients());
+  }, [dispatch]);
 
-    return () => {};
-  }, []);
-
-  const ingredientsById = ingredientsByIdMap(ingredients);
+  const ingredientsById = useMemo(
+    () => ingredientsByIdMap(ingredients),
+    [ingredients]
+  );
 
   const groupedData = useMemo<BurgerIngredientGroup[]>(
-    () => groupIngredientsByType(ingredients),
-    [ingredients]
+    () => groupIngredientsByType(ingredients, ingredientGroupsConfig),
+    [ingredientGroupsConfig, ingredients]
   );
 
   const { bun, items: constructorItems } = useMemo<{
     bun: BurgerIngredientType | null;
     items: ConstructorSelectedIngredient[];
   }>(() => {
-    const items: ConstructorSelectedIngredient[] = [];
     let bunIngredient: BurgerIngredientType | null = null;
+    const fillingByUid = new Map<string, BurgerIngredientType>();
 
     Object.values(selectedIngredients).forEach((entry) => {
-      if (!entry) {
-        setOrderNumber(null);
-        return;
-      }
-
       const ingredient = ingredientsById[entry._id];
 
-      if (!ingredient || !entry.selected?.length) {
+      if (!ingredient || entry.selected.length === 0) {
         return;
       }
 
@@ -96,15 +107,30 @@ const SectionConstructor: React.FC = () => {
       }
 
       entry.selected.forEach((uid) => {
-        items.push({
-          uid,
-          ingredient,
-        });
+        fillingByUid.set(uid, ingredient);
       });
     });
 
+    const items = selectedOrder.reduce<ConstructorSelectedIngredient[]>(
+      (accumulator, uid) => {
+        const ingredient = fillingByUid.get(uid);
+
+        if (!ingredient) {
+          return accumulator;
+        }
+
+        accumulator.push({
+          uid,
+          ingredient,
+        });
+
+        return accumulator;
+      },
+      []
+    );
+
     return { bun: bunIngredient, items };
-  }, [ingredientsById, selectedIngredients]);
+  }, [ingredientsById, selectedIngredients, selectedOrder]);
 
   const totalPrice = useMemo(() => {
     const fillingsTotal = constructorItems.reduce(
@@ -130,102 +156,49 @@ const SectionConstructor: React.FC = () => {
       }
 
       setActiveIngredient(selectedIngredient);
-
-      const uid = `${ingredientId}_${Date.now()}`;
-
-      if (selectedIngredient.type === "bun") {
-        setSelectedIngredients((prevState) => {
-          const nextState: Partial<BurgerIngredientDictionary> = {};
-
-          Object.entries(prevState).forEach(([key, value]) => {
-            if (!value) {
-              return;
-            }
-
-            const ingredient = ingredientsById[key];
-
-            if (ingredient?.type !== "bun" || key === ingredientId) {
-              nextState[key] = value;
-            }
-          });
-
-          nextState[ingredientId] = {
-            _id: ingredientId,
-            selected: [uid],
-          };
-
-          return nextState;
-        });
-        return;
-      }
-
-      setSelectedIngredients((prevState) => {
-        const currentEntry = prevState[ingredientId];
-
-        if (!currentEntry) {
-          return {
-            ...prevState,
-            [ingredientId]: {
-              _id: ingredientId,
-              selected: [uid],
-            },
-          };
-        }
-
-        return {
-          ...prevState,
-          [ingredientId]: {
-            ...currentEntry,
-            selected: [...currentEntry.selected, uid],
-          },
-        };
-      });
     },
     [ingredientsById]
   );
 
+  const handleIngredientDrop = useCallback(
+    (ingredient: BurgerIngredientType) => {
+      dispatch(addIngredient(ingredient));
+    },
+    [dispatch]
+  );
+
   const handleRemoveFromConstructor = useCallback(
     (ingredientId: BurgerIngredientType["_id"], uid: string) => {
-      setOrderNumber(null);
-
-      setSelectedIngredients((prev) => {
-        const entry = prev[ingredientId];
-        if (!entry) return prev;
-
-        const nextSelected = entry.selected.filter((x) => x !== uid);
-
-        if (nextSelected.length === 0) {
-          const { [ingredientId]: _removed, ...rest } = prev;
-          return rest;
-        }
-
-        return {
-          ...prev,
-          [ingredientId]: {
-            ...entry,
-            selected: nextSelected,
-          },
-        };
-      });
+      dispatch(removeIngredient({ ingredientId, uid }));
     },
-    []
+    [dispatch]
+  );
+
+  const handleReorderIngredients = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      dispatch(reorderIngredients({ fromIndex, toIndex }));
+    },
+    [dispatch]
   );
 
   const handleIngredientModalClose = () => {
     setActiveIngredient(null);
   };
 
-  const handleOrder = () => {
-    if (constructorItems.length > 0) {
-      setOrderNumber(() => Math.floor(100000 + Math.random() * 900000));
-      setIsOrderModalOpen(true);
+  const handleOrder = useCallback(() => {
+    if (orderStatus === "loading") {
+      return;
     }
-  };
+    dispatch(submitConstructorOrder());
+  }, [dispatch, orderStatus]);
 
   const handleOrderModalClose = () => {
-    setIsOrderModalOpen(false);
-    setOrderNumber(null);
+    dispatch(closeOrderModal());
   };
+
+  const handleOrderErrorClose = useCallback(() => {
+    dispatch(clearOrderError());
+  }, [dispatch]);
 
   if (loading || error)
     return (
@@ -242,6 +215,9 @@ const SectionConstructor: React.FC = () => {
     <div className={stylesConstructor.container}>
       <BurgerIngredients
         groupedData={groupedData}
+        tabLabels={tabLabels}
+        labelToType={labelToType}
+        typeToLabel={typeToLabel}
         getCounterById={getCounterById}
         onIngredientSelect={handleIngredientSelect}
       />
@@ -251,17 +227,30 @@ const SectionConstructor: React.FC = () => {
         totalPrice={totalPrice}
         onOrder={handleOrder}
         removeItem={handleRemoveFromConstructor}
+        onDropIngredient={handleIngredientDrop}
+        moveItem={handleReorderIngredients}
       />
       {activeIngredient && (
-        <IngredientDetails
+        <Modal
+          title={
+            <h2 className="text text_type_main-large">Детали ингредиентов</h2>
+          }
           onClose={handleIngredientModalClose}
-          ingredient={activeIngredient}
-        />
+          styles={ingredientModalStyles}
+        >
+          <IngredientDetails ingredient={activeIngredient} />
+        </Modal>
       )}
       {isOrderModalOpen && orderNumber !== null && (
-        <OrderDetails
-          onClose={handleOrderModalClose}
-          orderNumber={orderNumber}
+        <Modal onClose={handleOrderModalClose} styles={orderModalStyles}>
+          <OrderDetails orderNumber={orderNumber} />
+        </Modal>
+      )}
+      {orderError && (
+        <ErrorMessege
+          title="Ошибка заказа"
+          message={orderError}
+          onClose={handleOrderErrorClose}
         />
       )}
     </div>

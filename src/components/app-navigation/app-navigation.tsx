@@ -1,19 +1,29 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import AppHeader, { AppHeaderTabName } from "../app-header/app-header";
 import SectionConstructor from "../app-sections/section-constructor/section-constructor";
 import SectionOrders from "../app-sections/section-orders/section-orders";
 import SectionProfile from "../app-sections/section-profile/section-profile";
-
-const TAB_CONSTRUCTOR: AppHeaderTabName = "Конструктор";
-const TAB_ORDER_FEED: AppHeaderTabName = "Лента заказов";
-const TAB_PROFILE: AppHeaderTabName = "Личный кабинет";
+import type { AppDispatch, RootState } from "store";
+import {
+  setActiveTab,
+  TAB_CONSTRUCTOR,
+  TAB_ORDER_FEED,
+  TAB_PROFILE,
+} from "store/navigate/reducer";
 
 const AppNavigation: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AppHeaderTabName>(TAB_CONSTRUCTOR);
+  const dispatch = useDispatch<AppDispatch>();
+  const activeTab = useSelector(
+    (state: RootState) => state.navigation.activeTab
+  );
 
-  const handleTabSelect = useCallback((tabName: AppHeaderTabName) => {
-    setActiveTab(tabName);
-  }, []);
+  const handleTabSelect = useCallback(
+    (tabName: AppHeaderTabName) => {
+      dispatch(setActiveTab(tabName));
+    },
+    [dispatch]
+  );
 
   const renderActiveSection = () => {
     switch (activeTab) {
