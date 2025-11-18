@@ -1,0 +1,59 @@
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 16px;
+}
+
+.card {
+  /* background-color: #1c1c21; */
+  border-radius: 24px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: stretch;
+  /*   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45); */
+}
+
+.title {
+  text-align: center;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.linkRow {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.linkRow a {
+  color: #4c4cff;
+  text-decoration: none;
+}
+
+.linkRow a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: #f55151;
+  text-align: center;
+}
+
+.hint {
+  text-align: center;
+  color: #8585ad;
+}
