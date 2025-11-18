@@ -23,8 +23,13 @@ export const submitConstructorOrder = createAsyncThunk<
     void,
     { state: RootState; rejectValue: string }
 >("constructor/submitOrder", async (_, { getState, rejectWithValue }) => {
-    const state = getState().burgerConstructor;
-    const { selectedIngredients = {}, selectedOrder = [], ingredients } = state;
+    const rootState = getState();
+    const { selectedIngredients = {}, selectedOrder = [], ingredients } = rootState.burgerConstructor;
+    const accessToken = rootState.auth.accessToken;
+
+    if (!accessToken) {
+        return rejectWithValue("Необходимо авторизоваться для оформления заказа.");
+    }
 
     const ingredientsById = ingredients.reduce<Record<string, BurgerIngredientType>>(
         (accumulator, ingredient) => {
@@ -71,7 +76,7 @@ export const submitConstructorOrder = createAsyncThunk<
     }
 
     try {
-        const response = await createIngredientsOrder([bunId, ...fillingIds, bunId]);
+        const response = await createIngredientsOrder([bunId, ...fillingIds, bunId], accessToken);
         return { orderNumber: response.order.number };
     } catch (error) {
         const message =

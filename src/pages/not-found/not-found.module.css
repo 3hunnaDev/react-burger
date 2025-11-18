@@ -1,0 +1,19 @@
+.page {
+  width: 100%;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.link {
+  color: #4c4cff;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

@@ -3,33 +3,39 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { Location } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  Button,
   EmailInput,
   PasswordInput,
-  Button,
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import styles from "../authorization.module.css";
 import type { RootState, AppDispatch } from "store";
-import { loginUser } from "store/auth/thunks";
+import { registerUser } from "store/auth/thunks";
+import TextInput from "components/shared/text-input/text-input";
 import { isEmailValid, isPasswordValid, EMAIL_ERROR_TEXT } from "utils/validation";
 
-const AppLogin: React.FC = () => {
+const AppRegister: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
   const { status, errors, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
-  const [form, setForm] = useState({ email: "", password: "" });
 
-  const loginStatus = status.login;
-  const loginError = errors.login;
+  const registerStatus = status.register;
+  const registerError = errors.register;
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
   useEffect(() => {
-    if (loginStatus === "succeeded" && isAuthenticated) {
+    if (registerStatus === "succeeded" && isAuthenticated) {
       const from = (location.state as { from?: Location })?.from;
       navigate(from?.pathname ?? "/", { replace: true });
     }
-  }, [isAuthenticated, location.state, loginStatus, navigate]);
+  }, [isAuthenticated, location.state, navigate, registerStatus]);
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +47,7 @@ const AppLogin: React.FC = () => {
 
   const isPasswordFieldValid = isPasswordValid(form.password);
   const isEmailFieldValid = isEmailValid(form.email);
-  const isFormValid = isPasswordFieldValid && isEmailFieldValid;
+  const isFormValid = isEmailFieldValid && isPasswordFieldValid;
 
   const handleSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -49,7 +55,7 @@ const AppLogin: React.FC = () => {
       if (!isPasswordValid(form.password) || !isEmailValid(form.email)) {
         return;
       }
-      dispatch(loginUser(form));
+      dispatch(registerUser(form));
     },
     [dispatch, form]
   );
@@ -58,9 +64,15 @@ const AppLogin: React.FC = () => {
     <section className={styles.container}>
       <form className={styles.card} onSubmit={handleSubmit}>
         <h1 className={`text text_type_main-medium ${styles.title}`}>
-          Вход
+          Регистрация
         </h1>
         <div className={styles.fields}>
+          <TextInput
+            name="name"
+            placeholder="Имя"
+            value={form.name}
+            onChange={handleChange}
+          />
           <EmailInput
             name="email"
             value={form.email}
@@ -75,9 +87,9 @@ const AppLogin: React.FC = () => {
             onChange={handleChange}
           />
         </div>
-        {loginError ? (
+        {registerError ? (
           <p className={`text text_type_main-default ${styles.error}`}>
-            {loginError}
+            {registerError}
           </p>
         ) : null}
         <div className={styles.actions}>
@@ -85,17 +97,13 @@ const AppLogin: React.FC = () => {
             htmlType="submit"
             type="primary"
             size="medium"
-            disabled={loginStatus === "loading" || !isFormValid}
+            disabled={registerStatus === "loading" || !isFormValid}
           >
-            {loginStatus === "loading" ? "Входим..." : "Войти"}
+            {registerStatus === "loading" ? "Создаём..." : "Зарегистрироваться"}
           </Button>
           <p className={`text text_type_main-default ${styles.linkRow}`}>
-            Вы — новый пользователь?
-            <Link to="/register">Зарегистрироваться</Link>
-          </p>
-          <p className={`text text_type_main-default ${styles.linkRow}`}>
-            Забыли пароль?
-            <Link to="/forgot-password">Восстановить пароль</Link>
+            Уже зарегистрированы?
+            <Link to="/login">Войти</Link>
           </p>
         </div>
       </form>
@@ -103,4 +111,4 @@ const AppLogin: React.FC = () => {
   );
 };
 
-export default AppLogin;
+export default AppRegister;

@@ -14,7 +14,6 @@ const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = React.memo(
     groupedData,
     activeTab,
     getCounterById,
-    onIngredientSelect,
     onGroupInView,
     shouldScrollToActive,
     onScrollAligned,
@@ -156,7 +155,6 @@ const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = React.memo(
                   key={`${ingredient._id}-${type}`}
                   ingredient={ingredient}
                   counter={getCounterById(ingredient._id)}
-                  onSelect={onIngredientSelect}
                 />
               ))}
             </ul>

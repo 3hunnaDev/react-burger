@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 import BurgerConstructor from "./burger-constructor/burger-constructor";
 import BurgerIngredients from "./burger-ingredients/burger-ingredients";
 import stylesConstructor from "./section-constructor.module.css";
@@ -9,9 +10,6 @@ import type {
   ConstructorSelectedIngredient,
   IngredientGroupConfig,
 } from "./section-constructor.type";
-import IngredientDetails, {
-  ingredientModalStyles,
-} from "./burger-ingredients/burger-ingredients-details";
 import OrderDetails, {
   orderModalStyles,
 } from "./burger-constructor/burger-constructor-order";
@@ -69,9 +67,9 @@ const SectionConstructor: React.FC = () => {
   const labelToType = useSelector(selectLabelToTypeMap);
   const typeToLabel = useSelector(selectTypeToLabelMap);
   const ingredientGroupsConfig = useSelector(selectIngredientGroupsConfig);
-
-  const [activeIngredient, setActiveIngredient] =
-    useState<BurgerIngredientType | null>(null);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     dispatch(fetchIngredients());
@@ -147,19 +145,6 @@ const SectionConstructor: React.FC = () => {
     [selectedIngredients]
   );
 
-  const handleIngredientSelect = useCallback(
-    (ingredientId: BurgerIngredientType["_id"]): void => {
-      const selectedIngredient = ingredientsById[ingredientId];
-
-      if (!selectedIngredient) {
-        return;
-      }
-
-      setActiveIngredient(selectedIngredient);
-    },
-    [ingredientsById]
-  );
-
   const handleIngredientDrop = useCallback(
     (ingredient: BurgerIngredientType) => {
       dispatch(addIngredient(ingredient));
@@ -181,16 +166,16 @@ const SectionConstructor: React.FC = () => {
     [dispatch]
   );
 
-  const handleIngredientModalClose = () => {
-    setActiveIngredient(null);
-  };
-
   const handleOrder = useCallback(() => {
     if (orderStatus === "loading") {
       return;
     }
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
     dispatch(submitConstructorOrder());
-  }, [dispatch, orderStatus]);
+  }, [dispatch, isAuthenticated, location, navigate, orderStatus]);
 
   const handleOrderModalClose = () => {
     dispatch(closeOrderModal());
@@ -219,7 +204,6 @@ const SectionConstructor: React.FC = () => {
         labelToType={labelToType}
         typeToLabel={typeToLabel}
         getCounterById={getCounterById}
-        onIngredientSelect={handleIngredientSelect}
       />
       <BurgerConstructor
         bun={bun}
@@ -230,17 +214,6 @@ const SectionConstructor: React.FC = () => {
         onDropIngredient={handleIngredientDrop}
         moveItem={handleReorderIngredients}
       />
-      {activeIngredient && (
-        <Modal
-          title={
-            <h2 className="text text_type_main-large">Детали ингредиентов</h2>
-          }
-          onClose={handleIngredientModalClose}
-          styles={ingredientModalStyles}
-        >
-          <IngredientDetails ingredient={activeIngredient} />
-        </Modal>
-      )}
       {isOrderModalOpen && orderNumber !== null && (
         <Modal onClose={handleOrderModalClose} styles={orderModalStyles}>
           <OrderDetails orderNumber={orderNumber} />

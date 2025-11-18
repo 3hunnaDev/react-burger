@@ -71,6 +71,8 @@
   align-items: center;
   gap: 0;
   position: relative;
+  text-decoration: none;
+  color: inherit;
 }
 
 .itemImage {

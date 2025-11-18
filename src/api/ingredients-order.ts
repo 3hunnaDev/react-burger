@@ -13,10 +13,14 @@ export interface IngredientsOrderResponse {
 }
 
 export async function createIngredientsOrder(
-    ingredients: IngredientsOrderPayload["ingredients"]
+    ingredients: IngredientsOrderPayload["ingredients"],
+    accessToken: string
 ): Promise<IngredientsOrderResponse> {
     const res = await apiRequest<IngredientsOrderResponse>("/orders", {
         method: "POST",
+        headers: {
+            authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ ingredients }),
     });
 

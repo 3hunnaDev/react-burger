@@ -25,7 +25,6 @@ export interface BurgerIngredientType {
 export interface BurgerIngredientsProps {
     groupedData: BurgerIngredientGroup[];
     getCounterById: (_id: BurgerIngredientType["_id"]) => number;
-    onIngredientSelect: (_id: BurgerIngredientType["_id"]) => void;
     tabLabels: readonly TabLabel[];
     labelToType: Record<TabLabel, IngredientType>;
     typeToLabel: Record<IngredientType, TabLabel>;
@@ -35,7 +34,6 @@ export interface BurgerIngredientsListProps {
     groupedData: BurgerIngredientGroup[];
     activeTab: TabLabel;
     getCounterById: (_id: BurgerIngredientType["_id"]) => number;
-    onIngredientSelect: (_id: BurgerIngredientType["_id"]) => void;
     onGroupInView: (label: TabLabel) => void;
     shouldScrollToActive: boolean;
     onScrollAligned: () => void;
@@ -58,7 +56,6 @@ export interface BurgerIngredientGroup {
 export interface BurgerIngredientItemProps {
     ingredient: BurgerIngredientType;
     counter?: number;
-    onSelect: (_id: BurgerIngredientType["_id"]) => void;
 }
 
 export interface DraggedIngredient {
