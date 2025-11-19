@@ -114,6 +114,16 @@ const Profile: React.FC = () => {
     setPasswordError(null);
   }, [user?.email, user?.name]);
 
+  const handleFormKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLFormElement>) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleCancel();
+      }
+    },
+    [handleCancel]
+  );
+
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -195,7 +205,11 @@ const Profile: React.FC = () => {
   }, [dispatch, navigate]);
 
   const renderProfileContent = () => (
-    <form className={styles.formWrapper} onSubmit={handleSubmit}>
+    <form
+      className={styles.formWrapper}
+      onSubmit={handleSubmit}
+      onKeyDown={handleFormKeyDown}
+    >
       <div className={styles.fields}>
         <TextInput
           name="name"
