@@ -18,10 +18,7 @@ export async function createIngredientsOrder(
 ): Promise<IngredientsOrderResponse> {
     const res = await apiRequest<IngredientsOrderResponse>("/orders", {
         method: "POST",
-        headers: {
-            authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ ingredients }),
+        body: JSON.stringify({ ingredients, token: accessToken }),
     });
 
     if (!res.success) {

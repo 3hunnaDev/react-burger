@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import type { Location } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import AppHeader from "components/app-header/app-header";
 import ProtectedRouteElement from "components/shared/protected-route/protected-route";
 import IngredientDetailsModal from "components/ingredient-details/ingredient-details-modal";
@@ -15,19 +14,20 @@ import IngredientPage from "pages/ingredient/ingredient";
 import NotFoundPage from "pages/not-found/not-found";
 /* import SectionOrdersPage from "pages/orders/orders"; */
 import "./index.css";
-import type { AppDispatch } from "store";
+import { useAppDispatch } from "hooks/redux";
 import { fetchCurrentUser } from "store/auth/thunks";
+import { fetchIngredients } from "store/constructor/thunk";
 
 export { default as AppHeader } from "./components/app-header/app-header";
-export type { AppHeaderTabName } from "./components/app-header/app-header";
 
 function App() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const location = useLocation();
   const state = location.state as { backgroundLocation?: Location } | undefined;
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
+    dispatch(fetchIngredients());
   }, [dispatch]);
 
   return (

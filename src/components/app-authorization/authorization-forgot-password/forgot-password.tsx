@@ -1,19 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
   EmailInput,
   Button,
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import styles from "../authorization.module.css";
-import type { RootState, AppDispatch } from "store";
 import { forgotPassword } from "store/auth/thunks";
 import { isEmailValid, EMAIL_ERROR_TEXT } from "utils/validation";
+import { useAppDispatch, useAppSelector } from "hooks/redux";
 
 const ForgotPassword: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { status, errors } = useSelector((state: RootState) => state.auth);
+  const { status, errors } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState("");
 
   const forgotStatus = status.forgotPassword;

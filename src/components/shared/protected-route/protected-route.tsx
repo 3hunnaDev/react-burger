@@ -1,8 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import type { Location } from "react-router-dom";
-import { useSelector } from "react-redux";
-import type { RootState } from "store";
+import { useAppSelector } from "hooks/redux";
 
 interface ProtectedRouteProps {
   element: JSX.Element;
@@ -14,8 +13,8 @@ const ProtectedRouteElement: React.FC<ProtectedRouteProps> = ({
   onlyUnAuth = false,
 }) => {
   const location = useLocation();
-  const { isAuthenticated, isUserChecked } = useSelector(
-    (state: RootState) => state.auth
+  const { isAuthenticated, isUserChecked } = useAppSelector(
+    (state) => state.auth
   );
 
   if (!isUserChecked) {

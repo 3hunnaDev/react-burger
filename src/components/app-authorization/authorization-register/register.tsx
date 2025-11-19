@@ -1,25 +1,22 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { Location } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
   Button,
   EmailInput,
   PasswordInput,
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import styles from "../authorization.module.css";
-import type { RootState, AppDispatch } from "store";
 import { registerUser } from "store/auth/thunks";
 import TextInput from "components/shared/text-input/text-input";
 import { isEmailValid, isPasswordValid, EMAIL_ERROR_TEXT } from "utils/validation";
+import { useAppDispatch, useAppSelector } from "hooks/redux";
 
 const AppRegister: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { status, errors, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { status, errors, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const registerStatus = status.register;
   const registerError = errors.register;

@@ -1,21 +1,20 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
   Button,
   PasswordInput,
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import styles from "../authorization.module.css";
-import type { RootState, AppDispatch } from "store";
 import { resetPassword } from "store/auth/thunks";
 import TextInput from "components/shared/text-input/text-input";
 import { isPasswordValid } from "utils/validation";
+import { useAppDispatch, useAppSelector } from "hooks/redux";
 
 const ResetPassword: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { status, errors, isResetPasswordAllowed } = useSelector(
-    (state: RootState) => state.auth
+  const { status, errors, isResetPasswordAllowed } = useAppSelector(
+    (state) => state.auth
   );
   const [form, setForm] = useState({ password: "", token: "" });
 

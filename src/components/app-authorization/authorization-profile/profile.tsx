@@ -1,23 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
 import styles from "./profile.module.css";
-import type { RootState, AppDispatch } from "store";
 import { logoutUser, updateUserProfile } from "store/auth/thunks";
 import TextInput from "components/shared/text-input/text-input";
+import { Button } from "@ya.praktikum/react-developer-burger-ui-components";
 import {
   isEmailValid,
   isPasswordValid,
   EMAIL_ERROR_TEXT,
   PASSWORD_ERROR_TEXT,
 } from "utils/validation";
+import { useAppDispatch, useAppSelector } from "hooks/redux";
 
 type EditableField = "name" | "email" | "password";
 
 const Profile: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user, errors } = useSelector((state: RootState) => state.auth);
+  const { user, errors, status } = useAppSelector((state) => state.auth);
   const [form, setForm] = useState({
     name: user?.name ?? "",
     email: user?.email ?? "",
@@ -74,7 +74,6 @@ const Profile: React.FC = () => {
     (field: EditableField) => {
       setEditableField(field);
       if (field === "password") {
-        setForm((prev) => ({ ...prev, password: "" }));
         setPasswordError(null);
       }
       if (field === "email") {
@@ -85,28 +84,53 @@ const Profile: React.FC = () => {
     [focusField]
   );
 
-  const handleFieldBlur = useCallback(
-    (field: EditableField) => {
-      if (editableField !== field) {
+  const updateError = errors.updateUser;
+  const updateStatus = status.updateUser;
+  const passwordValue = editableField === "password" ? form.password : "******";
+
+  const hasNameChanged = form.name !== (user?.name ?? "");
+  const hasEmailChanged = form.email !== (user?.email ?? "");
+  const hasPassword = Boolean(form.password);
+
+  const isEmailInputValid = !hasEmailChanged || isEmailValid(form.email);
+  const isPasswordInputValid = !hasPassword || isPasswordValid(form.password);
+
+  const hasChanges = hasNameChanged || hasEmailChanged || hasPassword;
+  const isActionVisible = editableField !== null || hasChanges;
+  const isSubmitDisabled =
+    !hasChanges ||
+    !isEmailInputValid ||
+    !isPasswordInputValid ||
+    updateStatus === "loading";
+
+  const handleCancel = useCallback(() => {
+    setForm({
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      password: "",
+    });
+    setEditableField(null);
+    setEmailError(null);
+    setPasswordError(null);
+  }, [user?.email, user?.name]);
+
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (!hasChanges) {
         return;
       }
 
-      if (field === "password") {
-        if (form.password && !isPasswordValid(form.password)) {
-          setPasswordError(PASSWORD_ERROR_TEXT);
-          return;
-        }
-        setPasswordError(null);
-      }
-      if (field === "email") {
-        if (!isEmailValid(form.email)) {
-          setEmailError(EMAIL_ERROR_TEXT);
-          return;
-        }
-        setEmailError(null);
+      if (hasEmailChanged && !isEmailValid(form.email)) {
+        setEmailError(EMAIL_ERROR_TEXT);
+        return;
       }
 
-      setEditableField(null);
+      if (hasPassword && !isPasswordValid(form.password)) {
+        setPasswordError(PASSWORD_ERROR_TEXT);
+        return;
+      }
 
       const payload: Partial<{
         name: string;
@@ -114,37 +138,52 @@ const Profile: React.FC = () => {
         password: string;
       }> = {};
 
-      if (field === "name" && form.name !== (user?.name ?? "")) {
+      if (hasNameChanged) {
         payload.name = form.name;
       }
-      if (field === "email" && form.email !== (user?.email ?? "")) {
+      if (hasEmailChanged) {
         payload.email = form.email;
       }
-      if (field === "password" && form.password) {
+      if (hasPassword) {
         payload.password = form.password;
       }
 
-      if (Object.keys(payload).length > 0) {
-        dispatch(updateUserProfile(payload));
-      }
+      try {
+        await dispatch(updateUserProfile(payload)).unwrap();
+        setEditableField(null);
+        if (hasPassword) {
+          setForm((prev) => ({ ...prev, password: "" }));
+        }
+      } catch (error) {
+        const fallbackMessage =
+          "Не удалось обновить данные учетной записи. Попробуйте позже";
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error instanceof Error
+            ? error.message
+            : fallbackMessage;
 
-      if (field === "password") {
-        setForm((prev) => ({ ...prev, password: "" }));
+        if (hasEmailChanged) {
+          setEmailError(errorMessage);
+        }
+
+        if (hasPassword) {
+          setPasswordError(errorMessage);
+        }
       }
     },
     [
       dispatch,
-      editableField,
       form.email,
       form.name,
       form.password,
-      user?.email,
-      user?.name,
+      hasChanges,
+      hasEmailChanged,
+      hasNameChanged,
+      hasPassword,
     ]
   );
-
-  const updateError = errors.updateUser;
-  const passwordValue = editableField === "password" ? form.password : "******";
 
   const handleLogout = useCallback(async () => {
     try {
@@ -156,10 +195,7 @@ const Profile: React.FC = () => {
   }, [dispatch, navigate]);
 
   const renderProfileContent = () => (
-    <form
-      className={styles.formWrapper}
-      onSubmit={(event) => event.preventDefault()}
-    >
+    <form className={styles.formWrapper} onSubmit={handleSubmit}>
       <div className={styles.fields}>
         <TextInput
           name="name"
@@ -169,7 +205,6 @@ const Profile: React.FC = () => {
           disabled={editableField !== "name"}
           isIcon
           onIconClick={() => handleEnableField("name")}
-          onBlur={() => handleFieldBlur("name")}
           ref={nameInputRef}
         />
         <TextInput
@@ -181,7 +216,6 @@ const Profile: React.FC = () => {
           disabled={editableField !== "email"}
           isIcon
           onIconClick={() => handleEnableField("email")}
-          onBlur={() => handleFieldBlur("email")}
           ref={emailInputRef}
           error={Boolean(emailError)}
           errorText={emailError ?? undefined}
@@ -195,7 +229,6 @@ const Profile: React.FC = () => {
           disabled={editableField !== "password"}
           isIcon
           onIconClick={() => handleEnableField("password")}
-          onBlur={() => handleFieldBlur("password")}
           ref={passwordInputRef}
           autoComplete="new-password"
           error={Boolean(passwordError)}
@@ -206,6 +239,26 @@ const Profile: React.FC = () => {
         <p className={`text text_type_main-default ${styles.error}`}>
           {updateError}
         </p>
+      ) : null}
+      {isActionVisible ? (
+        <div className={styles.formActions}>
+          <Button
+            type="secondary"
+            size="medium"
+            htmlType="button"
+            onClick={handleCancel}
+          >
+            Отменить
+          </Button>
+          <Button
+            htmlType="submit"
+            type="primary"
+            size="medium"
+            disabled={isSubmitDisabled}
+          >
+            {updateStatus === "loading" ? "Сохраняем..." : "Сохранить"}
+          </Button>
+        </div>
       ) : null}
     </form>
   );

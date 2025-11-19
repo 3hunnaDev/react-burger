@@ -1,25 +1,23 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { Location } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
   EmailInput,
   PasswordInput,
   Button,
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import styles from "../authorization.module.css";
-import type { RootState, AppDispatch } from "store";
 import { loginUser } from "store/auth/thunks";
+import useForm from "hooks/use-form";
 import { isEmailValid, isPasswordValid, EMAIL_ERROR_TEXT } from "utils/validation";
+import { useAppDispatch, useAppSelector } from "hooks/redux";
 
 const AppLogin: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { status, errors, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-  const [form, setForm] = useState({ email: "", password: "" });
+  const { status, errors, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { values: form, handleChange } = useForm({ email: "", password: "" });
 
   const loginStatus = status.login;
   const loginError = errors.login;
@@ -30,14 +28,6 @@ const AppLogin: React.FC = () => {
       navigate(from?.pathname ?? "/", { replace: true });
     }
   }, [isAuthenticated, location.state, loginStatus, navigate]);
-
-  const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = event.target;
-      setForm((prev) => ({ ...prev, [name]: value }));
-    },
-    []
-  );
 
   const isPasswordFieldValid = isPasswordValid(form.password);
   const isEmailFieldValid = isEmailValid(form.email);

@@ -16,7 +16,7 @@
 }
 
 .sidebar {
-  width: 320px;
+  width: 250px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -69,6 +69,18 @@
 
 .error {
   color: #f55151;
+}
+
+.notice {
+  color: #8585ad;
+  text-align: center;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-start;
+  margin-left: 25px;
+  gap: 100px;
 }
 
 .placeholder {

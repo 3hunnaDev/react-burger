@@ -1,85 +1,60 @@
-import React, { useCallback, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import appHeaderStyles from "./app-header.module.css";
-import {
-  BurgerIcon,
-  Logo,
-  ListIcon,
-  ProfileIcon,
-} from "@ya.praktikum/react-developer-burger-ui-components";
-import AppHeaderTab from "./app-header-tab";
-import type { AppHeaderProps, AppHeaderTabName } from "./app-header.types";
+import { Logo } from "@ya.praktikum/react-developer-burger-ui-components";
+import type { AppHeaderIconType } from "./app-header.types";
+import { HEADER_NAVIGATION, type HeaderNavItem } from "./app-header.const";
 
-const DEFAULT_ACTIVE_TAB: AppHeaderTabName = "Конструктор";
+const getTabClassName = (isActive: boolean): string =>
+  `${appHeaderStyles.appHeaderTab}${
+    isActive ? ` ${appHeaderStyles.appHeaderTabActive}` : ""
+  }`;
 
-const AppHeader: React.FC<AppHeaderProps> = ({ activeTab, onTabSelect }) => {
-  const navigate = useNavigate();
+const AppHeader: React.FC = () => {
   const location = useLocation();
 
-  const resolvedActiveTab = useMemo<AppHeaderTabName>(() => {
-    if (activeTab) {
-      return activeTab;
-    }
+  const renderNavItem = (item: HeaderNavItem) => {
+    const resolveIsActive = (isActive: boolean) =>
+      item.matchPath ? isActive || item.matchPath(location.pathname) : isActive;
 
-    if (location.pathname.startsWith("/profile")) {
-      return "Личный кабинет";
-    }
+    return (
+      <NavLink
+        key={item.name}
+        to={item.to}
+        end={item.end}
+        className={({ isActive }) => getTabClassName(resolveIsActive(isActive))}
+      >
+        {({ isActive }) => {
+          const active = resolveIsActive(isActive);
+          const Icon = item.icon;
+          const iconType: AppHeaderIconType = active ? "primary" : "secondary";
 
-    if (location.pathname.startsWith("/ingredients")) {
-      return "Конструктор";
-    }
-
-    if (location.pathname.startsWith("/orders")) {
-      return "Лента заказов";
-    }
-
-    return DEFAULT_ACTIVE_TAB;
-  }, [activeTab, location.pathname]);
-
-  const handleTabSelect = useCallback(
-    (tabName: AppHeaderTabName) => {
-      if (tabName === "Личный кабинет") {
-        navigate("/profile");
-      }
-      if (tabName === "Конструктор") {
-        navigate("/");
-      }
-      if (tabName === "Лента заказов") {
-        navigate("/orders");
-      }
-
-      onTabSelect?.(tabName);
-    },
-    [navigate, onTabSelect]
-  );
+          return (
+            <span className={appHeaderStyles.appHeaderTabContent}>
+              {Icon ? <Icon type={iconType} /> : null}
+              <span className="text text_type_main-default">{item.name}</span>
+            </span>
+          );
+        }}
+      </NavLink>
+    );
+  };
 
   return (
     <header className={appHeaderStyles.header}>
       <div className={appHeaderStyles.bar}>
         <nav className={appHeaderStyles.appHeaderNavigateLeft}>
-          <AppHeaderTab
-            name="Конструктор"
-            icon={BurgerIcon}
-            isActive={resolvedActiveTab === "Конструктор"}
-            onSelect={handleTabSelect}
-          />
-          <AppHeaderTab
-            name="Лента заказов"
-            icon={ListIcon}
-            isActive={resolvedActiveTab === "Лента заказов"}
-            onSelect={handleTabSelect}
-          />
+          {HEADER_NAVIGATION.left.map(renderNavItem)}
         </nav>
-        <div className={appHeaderStyles.appHeaderLogo}>
+        <Link
+          to="/"
+          className={appHeaderStyles.appHeaderLogo}
+          aria-label="На главную"
+        >
           <Logo />
-        </div>
+        </Link>
         <nav className={appHeaderStyles.appHeaderNavigateRight}>
-          <AppHeaderTab
-            name="Личный кабинет"
-            icon={ProfileIcon}
-            isActive={resolvedActiveTab === "Личный кабинет"}
-            onSelect={handleTabSelect}
-          />
+          {HEADER_NAVIGATION.right.map(renderNavItem)}
         </nav>
       </div>
     </header>
@@ -88,9 +63,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activeTab, onTabSelect }) => {
 
 export default React.memo(AppHeader);
 export type {
-  AppHeaderProps,
   AppHeaderTabName,
   AppHeaderIconComponent,
   AppHeaderIconType,
-  AppHeaderTabProps,
 } from "./app-header.types";
