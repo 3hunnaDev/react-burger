@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useCallback, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import BurgerConstructor from "./burger-constructor/burger-constructor";
 import BurgerIngredients from "./burger-ingredients/burger-ingredients";
 import stylesConstructor from "./section-constructor.module.css";
@@ -9,11 +9,9 @@ import type {
   ConstructorSelectedIngredient,
   IngredientGroupConfig,
 } from "./section-constructor.type";
-import IngredientDetails, {
-  ingredientModalStyles,
-} from "./burger-ingredients/burger-ingredients-details";
 import OrderDetails, {
   orderModalStyles,
+  OrderLoader,
 } from "./burger-constructor/burger-constructor-order";
 import {
   addIngredient,
@@ -21,12 +19,9 @@ import {
   reorderIngredients,
   closeOrderModal,
   clearOrderError,
+  resetConstructor,
 } from "store/constructor/reducer";
-import {
-  fetchIngredients,
-  submitConstructorOrder,
-} from "store/constructor/thunk";
-import type { AppDispatch, RootState } from "store";
+import { submitConstructorOrder } from "store/constructor/thunk";
 import {
   selectIngredientGroupsConfig,
   selectIngredientTabLabels,
@@ -35,6 +30,7 @@ import {
 } from "store/constructor/selectors";
 import ErrorMessege from "components/shared/messeges/error/error-messege";
 import Modal from "components/shared/modal/modal";
+import { useAppDispatch, useAppSelector } from "hooks/redux";
 
 const groupIngredientsByType = (
   ingredients: BurgerIngredientType[] = [],
@@ -52,8 +48,16 @@ const ingredientsByIdMap = (ingredientsList: BurgerIngredientType[] = []) =>
     return accumulator;
   }, {} as Record<string, BurgerIngredientType>);
 
+const orderLoaderModalStyles = {
+  ...orderModalStyles,
+  button: {
+    ...(orderModalStyles.button ?? {}),
+    display: "none",
+  },
+};
+
 const SectionConstructor: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const {
     ingredients,
     loading,
@@ -64,18 +68,14 @@ const SectionConstructor: React.FC = () => {
     orderStatus,
     orderError,
     isOrderModalOpen,
-  } = useSelector((state: RootState) => state.burgerConstructor);
-  const tabLabels = useSelector(selectIngredientTabLabels);
-  const labelToType = useSelector(selectLabelToTypeMap);
-  const typeToLabel = useSelector(selectTypeToLabelMap);
-  const ingredientGroupsConfig = useSelector(selectIngredientGroupsConfig);
-
-  const [activeIngredient, setActiveIngredient] =
-    useState<BurgerIngredientType | null>(null);
-
-  useEffect(() => {
-    dispatch(fetchIngredients());
-  }, [dispatch]);
+  } = useAppSelector((state) => state.burgerConstructor);
+  const tabLabels = useAppSelector(selectIngredientTabLabels);
+  const labelToType = useAppSelector(selectLabelToTypeMap);
+  const typeToLabel = useAppSelector(selectTypeToLabelMap);
+  const ingredientGroupsConfig = useAppSelector(selectIngredientGroupsConfig);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const ingredientsById = useMemo(
     () => ingredientsByIdMap(ingredients),
@@ -147,19 +147,6 @@ const SectionConstructor: React.FC = () => {
     [selectedIngredients]
   );
 
-  const handleIngredientSelect = useCallback(
-    (ingredientId: BurgerIngredientType["_id"]): void => {
-      const selectedIngredient = ingredientsById[ingredientId];
-
-      if (!selectedIngredient) {
-        return;
-      }
-
-      setActiveIngredient(selectedIngredient);
-    },
-    [ingredientsById]
-  );
-
   const handleIngredientDrop = useCallback(
     (ingredient: BurgerIngredientType) => {
       dispatch(addIngredient(ingredient));
@@ -181,24 +168,27 @@ const SectionConstructor: React.FC = () => {
     [dispatch]
   );
 
-  const handleIngredientModalClose = () => {
-    setActiveIngredient(null);
-  };
-
   const handleOrder = useCallback(() => {
     if (orderStatus === "loading") {
       return;
     }
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
     dispatch(submitConstructorOrder());
-  }, [dispatch, orderStatus]);
+  }, [dispatch, isAuthenticated, location, navigate, orderStatus]);
 
   const handleOrderModalClose = () => {
     dispatch(closeOrderModal());
+    dispatch(resetConstructor());
   };
 
   const handleOrderErrorClose = useCallback(() => {
     dispatch(clearOrderError());
   }, [dispatch]);
+
+  const handleOrderPendingClose = useCallback(() => {}, []);
 
   if (loading || error)
     return (
@@ -219,7 +209,6 @@ const SectionConstructor: React.FC = () => {
         labelToType={labelToType}
         typeToLabel={typeToLabel}
         getCounterById={getCounterById}
-        onIngredientSelect={handleIngredientSelect}
       />
       <BurgerConstructor
         bun={bun}
@@ -230,20 +219,14 @@ const SectionConstructor: React.FC = () => {
         onDropIngredient={handleIngredientDrop}
         moveItem={handleReorderIngredients}
       />
-      {activeIngredient && (
-        <Modal
-          title={
-            <h2 className="text text_type_main-large">Детали ингредиентов</h2>
-          }
-          onClose={handleIngredientModalClose}
-          styles={ingredientModalStyles}
-        >
-          <IngredientDetails ingredient={activeIngredient} />
-        </Modal>
-      )}
       {isOrderModalOpen && orderNumber !== null && (
         <Modal onClose={handleOrderModalClose} styles={orderModalStyles}>
           <OrderDetails orderNumber={orderNumber} />
+        </Modal>
+      )}
+      {orderStatus === "loading" && (
+        <Modal onClose={handleOrderPendingClose} styles={orderLoaderModalStyles}>
+          <OrderLoader />
         </Modal>
       )}
       {orderError && (

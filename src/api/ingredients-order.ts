@@ -13,11 +13,12 @@ export interface IngredientsOrderResponse {
 }
 
 export async function createIngredientsOrder(
-    ingredients: IngredientsOrderPayload["ingredients"]
+    ingredients: IngredientsOrderPayload["ingredients"],
+    accessToken: string
 ): Promise<IngredientsOrderResponse> {
     const res = await apiRequest<IngredientsOrderResponse>("/orders", {
         method: "POST",
-        body: JSON.stringify({ ingredients }),
+        body: JSON.stringify({ ingredients, token: accessToken }),
     });
 
     if (!res.success) {

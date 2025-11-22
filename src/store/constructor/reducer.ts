@@ -96,8 +96,6 @@ const constructorSlice = createSlice({
                 state.orderNumber = action.payload.orderNumber;
                 state.isOrderModalOpen = true;
                 state.orderError = null;
-                state.selectedIngredients = {};
-                state.selectedOrder = [];
             })
             .addCase(submitConstructorOrder.rejected, (state, action) => {
                 state.orderStatus = "failed";

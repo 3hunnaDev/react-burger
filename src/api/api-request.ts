@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://norma.nomoreparties.space/api";
+const API_BASE_URL = "https://norma.education-services.ru/api";
 
 function resolveUrl(endpoint: string): string {
     if (/^https?:\/\//i.test(endpoint)) {

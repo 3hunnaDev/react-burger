@@ -21,6 +21,22 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ orderNumber }) => (
   </div>
 );
 
+export const OrderLoader: React.FC = () => (
+  <div className={orderStyles.orderContainer}>
+    <div
+      className={orderStyles.orderLoader}
+      role="status"
+      aria-label="Оформление заказа"
+    />
+    <div className={orderStyles.orderLoaderText}>
+      <p className="text text_type_main-medium">Оформляем заказ...</p>
+      <p className="text text_type_main-default text_color_inactive">
+        Ожидаем номер заказа от сервера
+      </p>
+    </div>
+  </div>
+);
+
 export const orderModalStyles = {
   main: {
     width: 720,

@@ -13,7 +13,6 @@ const BurgerIngredients: React.FC<BurgerIngredientsProps> = ({
   labelToType,
   typeToLabel,
   getCounterById,
-  onIngredientSelect,
 }) => {
   const [currentActiveTab, setCurrentActiveTab] = useState<TabLabel>(
     tabLabels[0]!
@@ -48,7 +47,6 @@ const BurgerIngredients: React.FC<BurgerIngredientsProps> = ({
         groupedData={groupedData}
         activeTab={currentActiveTab}
         getCounterById={getCounterById}
-        onIngredientSelect={onIngredientSelect}
         onGroupInView={handleGroupInView}
         shouldScrollToActive={shouldScrollToActive}
         onScrollAligned={handleScrollAligned}

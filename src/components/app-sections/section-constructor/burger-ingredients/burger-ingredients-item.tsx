@@ -1,9 +1,10 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   Counter,
   CurrencyIcon,
 } from "@ya.praktikum/react-developer-burger-ui-components";
 import { useDrag } from "react-dnd";
+import { Link, useLocation } from "react-router-dom";
 import styles from "./burger-ingredients.module.css";
 import type {
   BurgerIngredientItemProps,
@@ -13,12 +14,13 @@ import type {
 const BurgerIngredientsItem: React.FC<BurgerIngredientItemProps> = ({
   ingredient,
   counter = 0,
-  onSelect,
 }) => {
   const dragItem = useMemo<DraggedIngredient>(
     () => ({ ingredient }),
     [ingredient]
   );
+
+  const location = useLocation();
 
   const [{ isDragging }, dragRef] = useDrag<DraggedIngredient, void, { isDragging: boolean }>(
     () => ({
@@ -31,18 +33,15 @@ const BurgerIngredientsItem: React.FC<BurgerIngredientItemProps> = ({
     [dragItem]
   );
 
-  const handleSelect = useCallback(() => {
-    onSelect(ingredient._id);
-  }, [ingredient._id, onSelect]);
-
   const opacity = isDragging ? 0.4 : 1;
 
   return (
     <li className={styles.listItem}>
-      <article
+      <Link
         ref={dragRef}
+        to={`/ingredients/${ingredient._id}`}
+        state={{ backgroundLocation: location }}
         className={styles.itemWrapper}
-        onClick={handleSelect}
         style={{ opacity }}
       >
         {counter > 0 && (
@@ -66,7 +65,7 @@ const BurgerIngredientsItem: React.FC<BurgerIngredientItemProps> = ({
         <span className={`${styles.itemTitle} text text_type_main-small`}>
           {ingredient.name}
         </span>
-      </article>
+      </Link>
     </li>
   );
 };
