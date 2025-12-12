@@ -32,11 +32,11 @@ export async function apiRequest<T>(endpoint: string, options?: RequestInit): Pr
         const data = await response.json();
         return data as T;
 
-    } catch (error: any) {
-        if (error.name === "AbortError") {
+    } catch (unknownError) {
+        if (unknownError instanceof Error && unknownError.name === "AbortError") {
             throw new Error("Request timed out or was aborted");
         }
-        throw error;
+        throw unknownError;
     } finally {
         clearTimeout(timeout);
     }

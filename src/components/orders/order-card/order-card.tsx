@@ -25,19 +25,22 @@ const OrderCard: React.FC<OrderCardProps> = ({
   onSelect,
   showStatus = false,
 }) => {
-  const expandedIngredients = useMemo(
-    () =>
-      order.ingredients.flatMap((ingredient) =>
-        Array.from({ length: ingredient.quantity }, () => ingredient)
-      ),
-    [order.ingredients]
-  );
+  const uniqueIngredients = useMemo(() => {
+    const seen = new Set<string>();
+    return order.ingredients.filter((ingredient) => {
+      if (seen.has(ingredient.id)) {
+        return false;
+      }
+      seen.add(ingredient.id);
+      return true;
+    });
+  }, [order.ingredients]);
 
-  const visibleIngredients = expandedIngredients.slice(
+  const visibleIngredients = uniqueIngredients.slice(
     0,
     MAX_VISIBLE_INGREDIENTS
   );
-  const hiddenCount = expandedIngredients.length - visibleIngredients.length;
+  const hiddenCount = uniqueIngredients.length - visibleIngredients.length;
   const total = getOrderTotal(order);
   const formattedDate = formatOrderDate(order.createdAt);
 
@@ -81,7 +84,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
       <div className={styles.footer}>
         <ul className={styles.ingredientsList}>
           {visibleIngredients.map((ingredient, index) => (
-            <li key={`${order.id}-${ingredient.id}-${index}`}>
+            <li
+              key={`${order.id}-${ingredient.id}-${index}`}
+              style={{ zIndex: visibleIngredients.length - index }}
+            >
               <div className={styles.ingredient}>
                 <img
                   src={ingredient.image}

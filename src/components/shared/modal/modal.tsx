@@ -29,10 +29,22 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children, styles }) => {
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+
     document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      const computedPadding = window
+        .getComputedStyle(document.body)
+        .paddingRight.replace("px", "");
+      const currentPadding = Number.parseFloat(computedPadding) || 0;
+      document.body.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
+    }
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
     };
   }, []);
 

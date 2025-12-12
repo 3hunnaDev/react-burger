@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import styles from "./profile.module.css";
 import { logoutUser } from "store/auth/thunks";
@@ -8,20 +8,36 @@ const Profile: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = useCallback(async () => {
+    if (isLoggingOut) {
+      return;
+    }
     try {
+      setIsLoggingOut(true);
       await dispatch(logoutUser()).unwrap();
       navigate("/login", { replace: true });
     } catch {
       navigate("/404", { replace: true });
     }
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, isLoggingOut]);
 
   const isOrdersRoute = location.pathname.startsWith("/profile/orders");
   const description = isOrdersRoute
     ? "В этом разделе вы можете просмотреть историю заказов"
     : "В этом разделе вы можете изменить свои персональные данные";
+
+  if (isLoggingOut) {
+    return (
+      <div className={styles.logoutOverlay}>
+        <div className={styles.logoutSpinner} />
+        <p className={`text text_type_main-default ${styles.logoutText}`}>
+          Выход
+        </p>
+      </div>
+    );
+  }
 
   return (
     <section className={styles.container}>

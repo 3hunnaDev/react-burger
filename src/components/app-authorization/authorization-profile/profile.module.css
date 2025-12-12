@@ -94,3 +94,38 @@
   align-items: center;
   color: #8585ad;
 }
+
+.logoutOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background-color: #07070c;
+  z-index: 90;
+}
+
+.logoutSpinner {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 8px solid rgba(76, 76, 255, 0.15);
+  border-top-color: rgba(76, 76, 255, 1);
+  animation: orderLoaderSpin 0.8s linear infinite;
+}
+
+.logoutText {
+  color: #8585ad;
+  letter-spacing: 0.02em;
+}
+
+@keyframes orderLoaderSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

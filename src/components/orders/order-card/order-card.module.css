@@ -58,6 +58,17 @@
   align-items: center;
   justify-content: flex-start;
   min-height: 64px;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredientsList li {
+  list-style: none;
+  position: relative;
+}
+
+.ingredientsList li + li {
+  margin-left: -18px;
 }
 
 .ingredient {
@@ -68,11 +79,6 @@
   border: 2px solid rgba(76, 76, 255, 0.25);
   background-color: #131316;
   overflow: hidden;
-  margin-left: -16px;
-}
-
-.ingredient:first-child {
-  margin-left: 0;
 }
 
 .ingredientImage {

@@ -10,10 +10,23 @@
 
 .orderNumber {
   text-align: center;
+  margin-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.orderName {
+  margin: 0;
 }
 
 .status {
-  font-size: 18px;
+  margin: 0;
 }
 
 .statusDone {
@@ -35,6 +48,19 @@
   max-height: 340px;
   overflow-y: auto;
   padding-right: 8px;
+}
+
+.ingredientsList::-webkit-scrollbar {
+  width: 8px;
+  border-radius: 0;
+}
+
+.ingredientsList::-webkit-scrollbar-track {
+  background: rgba(47, 47, 55, 1);
+}
+
+.ingredientsList::-webkit-scrollbar-thumb {
+  background: rgba(133, 133, 173, 1);
 }
 
 .ingredientRow {

@@ -1,6 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getIngredients, createIngredientsOrder } from "api";
-import type { BurgerIngredientType } from "components/app-sections/section-constructor/section-constructor.type";
+import type {
+    BurgerIngredientDictionaryItem,
+    BurgerIngredientType,
+} from "components/app-sections/section-constructor/section-constructor.type";
 import type { RootState } from "store";
 
 export const fetchIngredients = createAsyncThunk<
@@ -32,7 +35,10 @@ export const submitConstructorOrder = createAsyncThunk<
     }
 
     const ingredientsById = ingredients.reduce<Record<string, BurgerIngredientType>>(
-        (accumulator, ingredient) => {
+        (
+            accumulator: Record<string, BurgerIngredientType>,
+            ingredient: BurgerIngredientType
+        ) => {
             accumulator[ingredient._id] = ingredient;
             return accumulator;
         },
@@ -42,7 +48,11 @@ export const submitConstructorOrder = createAsyncThunk<
     let bunId: BurgerIngredientType["_id"] | null = null;
     const fillingByUid = new Map<string, BurgerIngredientType>();
 
-    Object.values(selectedIngredients).forEach((entry) => {
+    const selectedEntries = Object.values(
+        selectedIngredients ?? {}
+    ) as BurgerIngredientDictionaryItem[];
+
+    selectedEntries.forEach((entry) => {
         const ingredient = ingredientsById[entry._id];
 
         if (!ingredient || entry.selected.length === 0) {
@@ -63,7 +73,7 @@ export const submitConstructorOrder = createAsyncThunk<
         return rejectWithValue("Выберите булку для заказа.");
     }
 
-    const fillingIds = selectedOrder.reduce<string[]>((accumulator, uid) => {
+    const fillingIds = selectedOrder.reduce<string[]>((accumulator: string[], uid: string) => {
         const ingredient = fillingByUid.get(uid);
         if (ingredient) {
             accumulator.push(ingredient._id);
