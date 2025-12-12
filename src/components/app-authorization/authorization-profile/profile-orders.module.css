@@ -1,0 +1,35 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}
+
+.title {
+  color: #f2f2f3;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.error {
+  color: #f55151;
+}
+
+.empty {
+  color: #8585ad;
+  text-align: center;
+  margin-top: 40px;
+}

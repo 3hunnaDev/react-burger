@@ -15,6 +15,11 @@
   align-items: flex-start;
 }
 
+.content {
+  flex: 1;
+  min-height: 420px;
+}
+
 .sidebar {
   width: 250px;
   display: flex;
