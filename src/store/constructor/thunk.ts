@@ -5,6 +5,8 @@ import type {
     BurgerIngredientType,
 } from "components/app-sections/section-constructor/section-constructor.type";
 import type { RootState } from "store";
+import { ACCESS_TOKEN_KEY } from "store/auth/state";
+import { getCookie } from "utils/cookies";
 
 export const fetchIngredients = createAsyncThunk<
     BurgerIngredientType[],
@@ -28,7 +30,7 @@ export const submitConstructorOrder = createAsyncThunk<
 >("constructor/submitOrder", async (_, { getState, rejectWithValue }) => {
     const rootState = getState();
     const { selectedIngredients = {}, selectedOrder = [], ingredients } = rootState.burgerConstructor;
-    const accessToken = rootState.auth.accessToken;
+    const accessToken = getCookie(ACCESS_TOKEN_KEY);
 
     if (!accessToken) {
         return rejectWithValue("Необходимо авторизоваться для оформления заказа.");
