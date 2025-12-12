@@ -12,7 +12,7 @@ function resolveUrl(endpoint: string): string {
 export async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = resolveUrl(endpoint);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 40000);
 
     try {
         const response = await fetch(url, {
