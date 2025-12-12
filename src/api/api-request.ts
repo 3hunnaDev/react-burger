@@ -12,7 +12,7 @@ function resolveUrl(endpoint: string): string {
 export async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = resolveUrl(endpoint);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 40000);
 
     try {
         const response = await fetch(url, {
@@ -32,11 +32,11 @@ export async function apiRequest<T>(endpoint: string, options?: RequestInit): Pr
         const data = await response.json();
         return data as T;
 
-    } catch (error: any) {
-        if (error.name === "AbortError") {
+    } catch (unknownError) {
+        if (unknownError instanceof Error && unknownError.name === "AbortError") {
             throw new Error("Request timed out or was aborted");
         }
-        throw error;
+        throw unknownError;
     } finally {
         clearTimeout(timeout);
     }

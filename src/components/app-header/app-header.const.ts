@@ -31,8 +31,9 @@ export const HEADER_NAVIGATION: {
     },
     {
       name: "Лента заказов",
-      to: "/orders",
+      to: "/feed",
       icon: ListIcon,
+      matchPath: (pathname) => pathname.startsWith("/feed"),
     },
   ],
   right: [
