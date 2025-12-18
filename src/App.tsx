@@ -1,18 +1,23 @@
 import React, { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import type { Location } from "react-router-dom";
+import type { OrderSummary } from "types/orders";
 import AppHeader from "components/app-header/app-header";
 import ProtectedRouteElement from "components/shared/protected-route/protected-route";
 import IngredientDetailsModal from "components/ingredient-details/ingredient-details-modal";
+import OrderDetailsModal from "components/orders/order-details/order-details-modal";
 import HomePage from "pages/home/home";
 import LoginPage from "pages/login/login";
 import RegisterPage from "pages/register/register";
 import ForgotPasswordPage from "pages/forgot-password/forgot-password";
 import ResetPasswordPage from "pages/reset-password/reset-password";
 import ProfilePage from "pages/profile/profile";
+import ProfileSettingsPage from "pages/profile/settings";
+import ProfileOrdersPage from "pages/profile/orders";
+import FeedPage from "pages/order-feed/order-feed";
 import IngredientPage from "pages/ingredient/ingredient";
 import NotFoundPage from "pages/not-found/not-found";
-/* import SectionOrdersPage from "pages/orders/orders"; */
+import OrderDetailsPage from "pages/order-details/order-details";
 import "./index.css";
 import { useAppDispatch } from "hooks/redux";
 import { fetchCurrentUser } from "store/auth/thunks";
@@ -23,7 +28,9 @@ export { default as AppHeader } from "./components/app-header/app-header";
 function App() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const state = location.state as { backgroundLocation?: Location } | undefined;
+  const state = location.state as
+    | { backgroundLocation?: Location; order?: OrderSummary }
+    | undefined;
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
@@ -36,8 +43,8 @@ function App() {
       <main>
         <Routes location={state?.backgroundLocation ?? location}>
           <Route path="/" element={<HomePage />} />
-          {/* <Route path="/orders" element={<SectionOrdersPage />} /> */}
-          <Route path="/orders" element={<NotFoundPage />} />
+          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/feed/:number" element={<OrderDetailsPage />} />
           <Route
             path="/login"
             element={
@@ -71,7 +78,11 @@ function App() {
           <Route
             path="/profile"
             element={<ProtectedRouteElement element={<ProfilePage />} />}
-          />
+          >
+            <Route index element={<ProfileSettingsPage />} />
+            <Route path="orders" element={<ProfileOrdersPage />} />
+            <Route path="orders/:number" element={<OrderDetailsPage />} />
+          </Route>
           <Route path="/ingredients/:id" element={<IngredientPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -80,6 +91,13 @@ function App() {
             <Route
               path="/ingredients/:id"
               element={<IngredientDetailsModal />}
+            />
+            <Route path="/feed/:number" element={<OrderDetailsModal />} />
+            <Route
+              path="/profile/orders/:number"
+              element={
+                <ProtectedRouteElement element={<OrderDetailsModal />} />
+              }
             />
           </Routes>
         )}

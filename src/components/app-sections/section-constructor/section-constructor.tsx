@@ -8,6 +8,7 @@ import type {
   BurgerIngredientType,
   ConstructorSelectedIngredient,
   IngredientGroupConfig,
+  BurgerIngredientDictionaryItem,
 } from "./section-constructor.type";
 import OrderDetails, {
   orderModalStyles,
@@ -43,10 +44,16 @@ const groupIngredientsByType = (
   }));
 
 const ingredientsByIdMap = (ingredientsList: BurgerIngredientType[] = []) =>
-  ingredientsList.reduce((accumulator, ingredient) => {
-    accumulator[ingredient._id] = ingredient;
-    return accumulator;
-  }, {} as Record<string, BurgerIngredientType>);
+  ingredientsList.reduce<Record<string, BurgerIngredientType>>(
+    (
+      accumulator: Record<string, BurgerIngredientType>,
+      ingredient: BurgerIngredientType
+    ) => {
+      accumulator[ingredient._id] = ingredient;
+      return accumulator;
+    },
+    {}
+  );
 
 const orderLoaderModalStyles = {
   ...orderModalStyles,
@@ -94,7 +101,11 @@ const SectionConstructor: React.FC = () => {
     let bunIngredient: BurgerIngredientType | null = null;
     const fillingByUid = new Map<string, BurgerIngredientType>();
 
-    Object.values(selectedIngredients).forEach((entry) => {
+    const selectedEntries = Object.values(
+      selectedIngredients ?? {}
+    ) as BurgerIngredientDictionaryItem[];
+
+    selectedEntries.forEach((entry) => {
       const ingredient = ingredientsById[entry._id];
 
       if (!ingredient || entry.selected.length === 0) {
@@ -112,7 +123,7 @@ const SectionConstructor: React.FC = () => {
     });
 
     const items = selectedOrder.reduce<ConstructorSelectedIngredient[]>(
-      (accumulator, uid) => {
+      (accumulator: ConstructorSelectedIngredient[], uid: string) => {
         const ingredient = fillingByUid.get(uid);
 
         if (!ingredient) {
