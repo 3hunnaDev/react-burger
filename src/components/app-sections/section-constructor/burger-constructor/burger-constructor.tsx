@@ -55,9 +55,13 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
       <section
         ref={dropRef}
         className={`${burgerConstructorStyles.listGroup}${dropAreaClassName}`}
+        data-cy="constructor-dropzone"
       >
         {bun && (
-          <div className={burgerConstructorStyles.lockedItem}>
+          <div
+            className={burgerConstructorStyles.lockedItem}
+            data-cy="constructor-bun-top"
+          >
             <ConstructorElement
               type="top"
               isLocked
@@ -70,7 +74,10 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
         )}
         {hasFillings || bun ? (
           <div className={burgerConstructorStyles.fillings}>
-            <ul className={burgerConstructorStyles.itemsList}>
+            <ul
+              className={burgerConstructorStyles.itemsList}
+              data-cy="constructor-fillings"
+            >
               {items.map((item, index) => (
                 <ConstructorFillingItem
                   key={item.uid}
@@ -83,12 +90,18 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
             </ul>
           </div>
         ) : (
-          <div className={burgerConstructorStyles.fillingsEmpty}>
+          <div
+            className={burgerConstructorStyles.fillingsEmpty}
+            data-cy="constructor-empty"
+          >
             <p className="text text_type_main-default">Выберите ингредиенты</p>
           </div>
         )}
         {bun && (
-          <div className={burgerConstructorStyles.lockedItem}>
+          <div
+            className={burgerConstructorStyles.lockedItem}
+            data-cy="constructor-bun-bottom"
+          >
             <ConstructorElement
               type="bottom"
               isLocked
@@ -100,12 +113,26 @@ const BurgerConstructor: React.FC<BurgerConstructorProps> = ({
           </div>
         )}
       </section>
-      <div className={burgerConstructorStyles.orderComfirmGroup}>
+      <div
+        className={burgerConstructorStyles.orderComfirmGroup}
+        data-cy="constructor-order-actions"
+      >
         <div className={burgerConstructorStyles.totalPrice}>
-          <span className="text text_type_digits-medium">{totalPrice}</span>
+          <span
+            className="text text_type_digits-medium"
+            data-cy="constructor-total-price"
+          >
+            {totalPrice}
+          </span>
           <CurrencyIcon type="primary" />
         </div>
-        <Button htmlType="button" type="primary" size="large" onClick={onOrder}>
+        <Button
+          htmlType="button"
+          type="primary"
+          size="large"
+          onClick={onOrder}
+          data-cy="order-button"
+        >
           Оформить заказ
         </Button>
       </div>

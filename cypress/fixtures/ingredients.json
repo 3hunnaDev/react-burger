@@ -1,0 +1,47 @@
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "bun-1",
+      "name": "Тестовая булка",
+      "type": "bun",
+      "proteins": 12,
+      "fat": 15,
+      "carbohydrates": 20,
+      "calories": 280,
+      "price": 120,
+      "image": "https://via.placeholder.com/150",
+      "image_mobile": "https://via.placeholder.com/80",
+      "image_large": "https://via.placeholder.com/300",
+      "__v": 0
+    },
+    {
+      "_id": "main-1",
+      "name": "Тестовая начинка",
+      "type": "main",
+      "proteins": 20,
+      "fat": 18,
+      "carbohydrates": 30,
+      "calories": 320,
+      "price": 200,
+      "image": "https://via.placeholder.com/150",
+      "image_mobile": "https://via.placeholder.com/80",
+      "image_large": "https://via.placeholder.com/300",
+      "__v": 0
+    },
+    {
+      "_id": "sauce-1",
+      "name": "Тестовый соус",
+      "type": "sauce",
+      "proteins": 5,
+      "fat": 4,
+      "carbohydrates": 8,
+      "calories": 60,
+      "price": 60,
+      "image": "https://via.placeholder.com/150",
+      "image_mobile": "https://via.placeholder.com/80",
+      "image_large": "https://via.placeholder.com/300",
+      "__v": 0
+    }
+  ]
+}
