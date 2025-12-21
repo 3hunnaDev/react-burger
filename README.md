@@ -1,46 +1,76 @@
-# Getting Started with Create React App
+# React Burger
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React Burger is a single-page application for assembling custom burgers, placing orders, and tracking activity in a personal account. The interface focuses on a smooth builder experience: users browse ingredients, assemble a burger with drag-and-drop, review composition details, and submit orders. Authentication unlocks profile features, while a WebSocket feed keeps order updates live and responsive.
 
-## Available Scripts
+## Table of Contents
 
-In the project directory, you can run:
+- [Demo](#demo)
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Scripts](#scripts)
+- [Testing](#testing)
+- [Deployment](#deployment)
 
-### `npm start`
+## Demo
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Live site: https://3hunnadev.github.io/react-burger/
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Overview
 
-### `npm test`
+The project emphasizes clean UX and predictable state management. Core flows are implemented as modular pages with shared UI components, while Redux Toolkit manages global state for the constructor, orders, and authentication. Testing covers both unit-level logic and end-to-end scenarios.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Features
 
-### `npm run build`
+- Drag-and-drop burger constructor
+- Ingredient details and order composition
+- Authentication and profile management
+- Order history and live feed via WebSocket
+- Responsive UI
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Tech Stack
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- React + TypeScript
+- Redux Toolkit
+- React Router
+- WebSocket
+- Cypress and Jest (react-scripts)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Project Structure
 
-### `npm run eject`
+- `src/components` — reusable UI and layout components
+- `src/pages` — application pages and flows
+- `src/store` — Redux Toolkit slices, actions, and thunks
+- `src/api` — API layer for backend communication
+- `cypress` — end-to-end tests and support utilities
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Getting Started
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm install
+npm start
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Open `http://localhost:3000`.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Scripts
 
-## Learn More
+```bash
+npm start        # run dev server
+npm test         # run unit tests in watch mode
+npm run build    # create production build
+npm run test:all # run unit tests once and then Cypress
+npm run test:cypress
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Testing
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Unit tests (watch mode): `npm test`
+- Full CI run: `npm run test:all` (runs tests once, then Cypress)
+- E2E tests only: `npm run test:cypress`
+
+## Deployment
+
+GitHub Pages: https://3hunnadev.github.io/react-burger/

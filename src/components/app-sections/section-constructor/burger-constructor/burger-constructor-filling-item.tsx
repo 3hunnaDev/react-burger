@@ -93,6 +93,7 @@ const ConstructorFillingItem: React.FC<ConstructorFillingItemProps> = ({
       ref={ref}
       className={burgerConstructorStyles.item}
       style={{ opacity: isDragging ? 0.3 : 1 }}
+      data-cy={`constructor-filling-${item.ingredient._id}`}
     >
       <div className={burgerConstructorStyles.dragIconWrapper}>
         <DragIcon type="primary" />

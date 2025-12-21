@@ -138,6 +138,7 @@ const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = React.memo(
             threshold={0}
             onChange={handleInViewChange}
             data-type={type}
+            data-cy={`ingredients-group-${type}`}
             className={ingredientsListStyles.listGroup}
             aria-labelledby={headingIds.get(type)}
             role="region"
@@ -149,7 +150,10 @@ const BurgerIngredientsList: React.FC<BurgerIngredientsListProps> = React.memo(
               {name}
             </h2>
 
-            <ul className={ingredientsListStyles.groupItems}>
+            <ul
+              className={ingredientsListStyles.groupItems}
+              data-cy={`ingredients-list-${type}`}
+            >
               {items.map((ingredient) => (
                 <BurgerIngredientsItem
                   key={`${ingredient._id}-${type}`}

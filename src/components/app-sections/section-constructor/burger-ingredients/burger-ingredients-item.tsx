@@ -43,9 +43,13 @@ const BurgerIngredientsItem: React.FC<BurgerIngredientItemProps> = ({
         state={{ backgroundLocation: location }}
         className={styles.itemWrapper}
         style={{ opacity }}
+        data-cy={`ingredient-${ingredient._id}`}
       >
         {counter > 0 && (
-          <div className={styles.counterWrapper}>
+          <div
+            className={styles.counterWrapper}
+            data-cy={`ingredient-counter-${ingredient._id}`}
+          >
             <Counter count={counter} size="default" />
           </div>
         )}
